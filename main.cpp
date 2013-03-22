@@ -14,15 +14,17 @@
 #include<stdint.h>
 #endif
 
-#include<iostream>
-#include<stdlib.h>
-#include<string>
-
+#include <iostream>
+#include <stdlib.h>
+#include <string>
+#include <math.h>
 
 
 
 
 #include "heightmap.h"
+#include "camera.h"
+
 using namespace std;
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
@@ -50,8 +52,9 @@ int disp_width=800, disp_height=600;
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
+Camera cam;
 HeightMap map;
-
+bool wireframe = false;
 
 
 
@@ -62,12 +65,10 @@ void init(){
 //    char* filepath = new char("Data/map.RAW");
     
     string s = "Data/map.RAW";
-    char *a=new char[s.size()+1];
-    a[s.size()]=0;
-    memcpy(a,s.c_str(),s.size());
     
-    map = HeightMap();
-    map.loadRawFile(a);
+    map = HeightMap(s);
+    cam = Camera();
+    //map.loadRawFile(s);
     
     
     /////////////////////////////////////////////////////////////
@@ -122,15 +123,30 @@ void resize_callback( int width, int height ){
     /////////////////////////////////////////////////////////////
     /// TODO: Put your resize code here! ////////////////////////
     /////////////////////////////////////////////////////////////
+    cam.applyReshape(width, height);
+}
+
+void changeGLMode() {
+	if (wireframe == false) {
+		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+		wireframe = true;
+	} else {
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL);
+		wireframe = false;
+	}
+    
 }
 
 // keyboard callback
 void keyboard_callback( unsigned char key, int x, int y ){
+    cam.keyboardInput(key, x, y);
     switch( key ){
         case 27:
             quit = true;
             break;
-        
+        case 9:				//TAB	(wireframe/fill)
+			changeGLMode();
+			break;
         default:
             break;
     }
@@ -158,22 +174,14 @@ void display_callback( void ){
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective( 70.0f, float(glutGet(GLUT_WINDOW_WIDTH))/float(glutGet(GLUT_WINDOW_HEIGHT)), 0.1f, 2000.0f );
-    gluLookAt(2.0, 2.0, 5.0,
-              0.0, 0.0, 0.0,
-              0.0, 1.0, 0.0);
     glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    cam.applyCameraTransform();
     
     
-    
-    //glutSolidCube(2);
+    glutSolidCube(2);
     map.RenderHeightMap();
     
-    
-    
-    
-    
-    glLoadIdentity();
-    glTranslatef( 0.0f, 0.0f, -5.0f );
 
     glBegin(GL_LINES);
     glColor3f( 1.0f, 0.0f, 0.0f );
@@ -223,7 +231,9 @@ void idle( int value ){
     glutTimerFunc( dt, idle, 0 );
 }
 
-
+void mouseMovement(int x, int y) {
+    cam.mouseMovement(x, y);
+}
 
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
@@ -240,11 +250,13 @@ int main( int argc, char **argv ){
     // initialize the mothership window
     glutInitWindowSize( disp_width, disp_height );
     glutInitWindowPosition( 0, 100 );
-    mother_window = glutCreateWindow( "Mother Ship" );
+    mother_window = glutCreateWindow( "Tank Wars" );
     glutKeyboardFunc( keyboard_callback );
     glutDisplayFunc( display_callback );
     glutReshapeFunc( resize_callback );
-
+    
+    glutPassiveMotionFunc(mouseMovement); //check for mouse movement
+    
     glutSetWindow( mother_window );
     init();
     
