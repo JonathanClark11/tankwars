@@ -18,10 +18,17 @@ private:
 
 public:
     HeightMap() {
+        ResetHeights();
         scaleValue = 0.15f;
     }
-
-	void loadRawFile(char* filename) {
+    
+    void ResetHeights() {
+        for (int i = 0; i < sizeof(g_HeightMap); i++) {
+            g_HeightMap[i] = 0;
+        }
+    }
+	
+    void loadRawFile(char* filename) {
         int nSize = MAP_SIZE * MAP_SIZE;
         char* pHeightMap = g_HeightMap;
         FILE *pFile = NULL;
