@@ -13,7 +13,7 @@ endif
 
 
 BIN=tankwars
-OBJ=camera.o heightmap.o main.o 
+OBJ=camera.o main.o tank.o objreader.o heightfield.o
 
 
 default: build

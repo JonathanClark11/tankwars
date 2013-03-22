@@ -22,9 +22,10 @@
 
 
 
-#include "heightmap.h"
 #include "camera.h"
+#include "tank.h"
 
+#include "heightfield.h"
 using namespace std;
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
@@ -53,33 +54,23 @@ int disp_width=800, disp_height=600;
 //////////////////////////////////////////////////////////////////
 
 Camera cam;
-HeightMap map;
 bool wireframe = false;
+HeightMap hField;
+Tank tanks[5];
 
-
-
-// set up opengl state, allocate objects, etc.  This gets called
-// ONCE PER WINDOW, so don't allocate your objects twice!
 void init(){
-    //std::string path = "Data/map.RAW";
-//    char* filepath = new char("Data/map.RAW");
-    
-    string s = "Data/map.RAW";
-    
-    map = HeightMap(s);
+    hField.Create("Data/maps/heightField.raw", 128, 128);
+    string tankmodel = "Data/models/shuttle.obj";
     cam = Camera();
-    //map.loadRawFile(s);
-    
-    
-    /////////////////////////////////////////////////////////////
-    /// TODO: Put your initialization code here! ////////////////
-    /////////////////////////////////////////////////////////////
+    for (int i = 0; i < sizeof(tanks); i++) {
+        //tanks[i] = Tank("Data/models/shuttle.obj", 1);
+    }
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 
     glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_NORMALIZE );
-    
+    glDepthFunc(GL_LEQUAL);
     // lighting stuff
     GLfloat ambient[] = {0.0, 0.0, 0.0, 1.0};
     GLfloat diffuse[] = {0.9, 0.9, 0.9, 1.0};
@@ -178,10 +169,11 @@ void display_callback( void ){
     glLoadIdentity();
     cam.applyCameraTransform();
     
-    
-    glutSolidCube(2);
-    map.RenderHeightMap();
-    
+    glPushMatrix();
+    glColor3f(1.0, 1.0, 1.0);
+    glTranslatef(0, -100, 0);
+    hField.Render();
+    glPopMatrix();
 
     glBegin(GL_LINES);
     glColor3f( 1.0f, 0.0f, 0.0f );
