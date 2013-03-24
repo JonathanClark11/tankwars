@@ -23,6 +23,7 @@
 
 
 #include "camera.h"
+#include "quaternion.h"
 #include "tank.h"
 
 #include "heightfield.h"
@@ -53,15 +54,18 @@ int disp_width=800, disp_height=600;
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
-Camera cam;
+OpenGLCamera camera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
+
 bool wireframe = false;
 HeightMap hField;
 Tank tanks[5];
 
 void init(){
-    hField.Create("Data/maps/heightField.raw", 128, 128);
+    hField.Create("heightField.raw", 512, 512);
+    //hField.ResetPlane();
     string tankmodel = "Data/models/shuttle.obj";
-    cam = Camera();
+    camera = OpenGLCamera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
+    
     for (int i = 0; i < sizeof(tanks); i++) {
         //tanks[i] = Tank("Data/models/shuttle.obj", 1);
     }
@@ -114,7 +118,6 @@ void resize_callback( int width, int height ){
     /////////////////////////////////////////////////////////////
     /// TODO: Put your resize code here! ////////////////////////
     /////////////////////////////////////////////////////////////
-    cam.applyReshape(width, height);
 }
 
 void changeGLMode() {
@@ -130,7 +133,7 @@ void changeGLMode() {
 
 // keyboard callback
 void keyboard_callback( unsigned char key, int x, int y ){
-    cam.keyboardInput(key, x, y);
+    camera.CallBackKeyboardFunc(key, x, y);
     switch( key ){
         case 27:
             quit = true;
@@ -167,11 +170,11 @@ void display_callback( void ){
     gluPerspective( 70.0f, float(glutGet(GLUT_WINDOW_WIDTH))/float(glutGet(GLUT_WINDOW_HEIGHT)), 0.1f, 2000.0f );
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    cam.applyCameraTransform();
     
+    camera.Update();
     glPushMatrix();
     glColor3f(1.0, 1.0, 1.0);
-    glTranslatef(0, -100, 0);
+    //glTranslatef(0, -100, 0);
     hField.Render();
     glPopMatrix();
 
@@ -224,9 +227,12 @@ void idle( int value ){
 }
 
 void mouseMovement(int x, int y) {
-    cam.mouseMovement(x, y);
+    camera.CallBackMotionFunc(x, y);
 }
 
+void mouseFunc(int button, int state, int x, int y) {
+    camera.CallBackMouseFunc(button, state, x, y);
+}
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 /// Program Entry Point //////////////////////////////////////////
@@ -248,6 +254,7 @@ int main( int argc, char **argv ){
     glutReshapeFunc( resize_callback );
     
     glutPassiveMotionFunc(mouseMovement); //check for mouse movement
+    glutMouseFunc(mouseFunc);
     
     glutSetWindow( mother_window );
     init();
