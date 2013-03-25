@@ -35,7 +35,7 @@ void Tank::drawTank() {
     glEnable(GL_COLOR_MATERIAL);
     
     glTranslatef(position[0], position[1], position[2]);
-    drawOrientationLines();
+    //drawOrientationLines();
     glTranslatef(0, modelYOffset, 0);
 	model.displayObj();
     glPopMatrix();

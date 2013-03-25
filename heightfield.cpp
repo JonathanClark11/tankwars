@@ -14,7 +14,6 @@
 #include<stdint.h>
 #endif
 
-#include <iostream.h>
 #include <fstream>
 #include "heightfield.h"
 #include "texloader.h"
@@ -32,14 +31,13 @@ bool HeightMap::Create(char *hFileName, char *texturePath, const int hWidth, con
 	hmHeight = hHeight;
 	hmWidth = hWidth;
 	FILE *fp;
-    cout<<hFileName<<", "<<hWidth<<", "<<hHeight<<endl;
 
     fp = fopen(hFileName, "rb");
     if (fp) {
 //        cout<<"File Exists"<<endl;
         fread(hHeightField, 1, hWidth * hHeight, fp);
     } else {
-        cout<<"File Doesn't Exist"<<endl;
+       //File doesn't exist
     }
     
     

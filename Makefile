@@ -13,7 +13,7 @@ endif
 
 
 BIN=tankwars
-OBJ=main.o tank.o objreader.o heightfield.o
+OBJ=main.o tank.o objreader.o heightfield.o skybox.o texloader.o
 
 
 default: build

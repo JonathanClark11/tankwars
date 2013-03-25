@@ -22,6 +22,7 @@
 
 #include "quaternion.h"
 #include "tank.h"
+#include "skybox.h"
 
 #include "heightfield.h"
 using namespace std;
@@ -54,8 +55,9 @@ int disp_width=800, disp_height=600;
 OpenGLCamera camera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
 
 bool wireframe = false;
-HeightMap hField;
-Tank tanks[5];
+HeightMap hField;           //our terrain (map)
+SkyBox sbox;                //skybox
+Tank tanks[1];
 
 
 GLfloat density = 0.001; //set the density to 0.3 which is acctually quite thick
@@ -98,6 +100,9 @@ void setup_lights() {
 
 void init(){
     hField.Create(heightmapFile, heightmapTexture, 256, 256);
+    char* SkyBoxTextures[6] = {"Data/textures/skybox/front.tga", "Data/textures/skybox/back.tga", "Data/textures/skybox/left.tga", "Data/textures/skybox/right.tga", "Data/textures/skybox/up.tga", "Data/textures/skybox/down.tga" };
+    sbox.Create(SkyBoxTextures);
+    
     camera = OpenGLCamera(real3(10,hField.getHeight(10, 3) + 5,-5), real3(2, 1, 2), real3(0, 1, 0),0.5);
     
     for (int i = 0; i < 1; i++) {
@@ -221,14 +226,17 @@ void display_callback( void ){
     
     camera.Update();
     glPushMatrix();
-    glColor3f(1.0, 1.0, 1.0);
-    //glTranslatef(0, -100, 0);
-    hField.Render();
     
-    for (int i = 0; i < sizeof(tanks); i++) {
+    glColor3f(1.0, 1.0, 1.0);
+    
+    hField.Render();
+    sbox.Render(camera.camera_pos.x,camera.camera_pos.y,camera.camera_pos.z,100,100,100);
+    
+    for (int i = 0; i < 1; i++) {
         tanks[i].drawTank();
         //cout<<"Tank Position: "<<tanks[i].getPosition()[1]<<endl;
     }
+    
     glPopMatrix();
     
     drawOrientationLines();
