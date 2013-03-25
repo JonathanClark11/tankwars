@@ -182,8 +182,8 @@ public:
     }
     void Move2D(int x, int y) {
         real3 mouse_delta = mouse_pos - real3(x, y, 0);
-        ChangeHeading(.02 * mouse_delta.x);
-        ChangePitch(.02 * mouse_delta.y);
+        ChangeHeading(.01 * mouse_delta.x);
+        ChangePitch(.01 * mouse_delta.y);
         mouse_pos = real3(x, y, 0);
     }
     void SetPos(int button, int state, int x, int y) {

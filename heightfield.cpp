@@ -15,7 +15,7 @@
 #endif
 
 #include <fstream>
-#include "jpeg.h"
+#include <iostream.h>
 #include "heightfield.h"
 
 bool HeightMap::Create(char *hFileName, const int hWidth, const int hHeight){	
@@ -27,7 +27,7 @@ bool HeightMap::Create(char *hFileName, const int hWidth, const int hHeight){
 	fread(hHeightField, 1, hWidth * hHeight, fp);
 	fclose(fp);
     
-    SwiftTextureJpeg(tID, "texture.jpg", 0);
+    //SwiftTextureJpeg(tID, "texture.jpg", 0);
 	return true;
 }
 
@@ -57,4 +57,5 @@ void HeightMap::ResetPlane() {
             hHeightField[hMapX][hMapZ] = 0;
         }
     }
+    cout<<hHeightField<<endl;
 }

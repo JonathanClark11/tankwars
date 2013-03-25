@@ -20,9 +20,6 @@
 #include <math.h>
 
 
-
-
-#include "camera.h"
 #include "quaternion.h"
 #include "tank.h"
 
@@ -59,10 +56,13 @@ OpenGLCamera camera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
 bool wireframe = false;
 HeightMap hField;
 Tank tanks[5];
+GLfloat density = 0.3; //set the density to 0.3 which is acctually quite thick
+
+GLfloat fogColor[4] = {1.0, 0.0, 0.0, 1.0}; //set the for color to grey
 
 void init(){
     hField.Create("heightField.raw", 512, 512);
-    //hField.ResetPlane();
+    hField.ResetPlane();
     string tankmodel = "Data/models/shuttle.obj";
     camera = OpenGLCamera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
     
@@ -75,6 +75,19 @@ void init(){
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_NORMALIZE );
     glDepthFunc(GL_LEQUAL);
+
+    
+    glEnable (GL_FOG); //enable the fog
+    
+    glFogi (GL_FOG_MODE, GL_EXP2); //set the fog mode to GL_EXP2
+    
+    glFogfv (GL_FOG_COLOR, fogColor); //set the fog color toour color chosen above
+    
+    glFogf (GL_FOG_DENSITY, density); //set the density to the value above
+    
+    glHint (GL_FOG_HINT, GL_NICEST); // set the fog to look the nicest, may slow down on older cards
+    
+    
     // lighting stuff
     GLfloat ambient[] = {0.0, 0.0, 0.0, 1.0};
     GLfloat diffuse[] = {0.9, 0.9, 0.9, 1.0};
@@ -93,6 +106,8 @@ void init(){
     glEnable( GL_LIGHTING );
     glEnable( GL_LIGHT0 );
     glEnable( GL_LIGHT1 );
+    glEnable( GL_LIGHT2 );
+    
     glEnable( GL_COLOR_MATERIAL );
     
 }
