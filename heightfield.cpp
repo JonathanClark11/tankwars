@@ -40,7 +40,6 @@ bool HeightMap::Create(char *hFileName, char *texturePath, const int hWidth, con
        //File doesn't exist
     }
     
-    
 	fclose(fp);
     TexID = TextureLoader::LoadTexture(texturePath);
 	return true;
@@ -54,16 +53,16 @@ void HeightMap::Render(void){
             glBegin(GL_TRIANGLE_STRIP);
             
             glTexCoord2f((float)hMapX / hmWidth, (float)hMapZ / hmHeight);
-            glVertex3f(hMapX, hHeightField[hMapX][hMapZ], hMapZ);
+            glVertex3f(hMapX, hHeightField[hMapX][hMapZ] * MAP_SCALE, hMapZ);
             
             glTexCoord2f((float)hMapX / hmWidth, (float)(hMapZ + 1) / hmHeight) ;
-            glVertex3f(hMapX, hHeightField[hMapX][hMapZ + 1], hMapZ + 1);
+            glVertex3f(hMapX, hHeightField[hMapX][hMapZ + 1] * MAP_SCALE, hMapZ + 1);
             
             glTexCoord2f((float)(hMapX + 1) / hmWidth, (float)hMapZ / hmHeight);
-            glVertex3f(hMapX + 1, hHeightField[hMapX + 1][hMapZ], hMapZ);
+            glVertex3f(hMapX + 1, hHeightField[hMapX + 1][hMapZ] * MAP_SCALE, hMapZ);
             
             glTexCoord2f((float)(hMapX + 1) / hmWidth, (float)(hMapZ + 1) / hmHeight);
-            glVertex3f(hMapX + 1, hHeightField[hMapX + 1][hMapZ + 1], hMapZ + 1);
+            glVertex3f(hMapX + 1, hHeightField[hMapX + 1][hMapZ + 1] * MAP_SCALE, hMapZ + 1);
             
             glEnd();
         }
@@ -72,7 +71,7 @@ void HeightMap::Render(void){
 }
 
 char HeightMap::getHeight(int x, int z) {
-    return hHeightField[x][z];
+    return hHeightField[x][z] * MAP_SCALE;
 }
 
 void HeightMap::ResetPlane() {

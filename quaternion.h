@@ -189,6 +189,27 @@ public:
     void SetPos(int button, int state, int x, int y) {
         mouse_pos = real3(x, y, 0);
     }
+    
+    void checkWallCollision(float floorheight) {
+        if (camera_pos.x > 1024) {
+            camera_pos.x = 1024;
+        } else if (camera_pos.x < 0) {
+            camera_pos.x = 0;
+        }
+        
+        if (camera_pos.z > 1024) {
+            camera_pos.z = 1024;
+        } else if (camera_pos.z < 0) {
+            camera_pos.z = 0;
+        }
+        
+        if (camera_pos.y > 1024) {
+            camera_pos.y = 1024;
+        } else if (camera_pos.y < floorheight + 0.2) {
+            camera_pos.y = floorheight + 1.0;
+        }
+    }
+    
     void Update() {
         real4 pitch_quat, heading_quat;
         real3 angle;
@@ -199,12 +220,34 @@ public:
         temp = normalize(temp);
         dir = quatRotate(dir, temp);
         camera_pos += camera_pos_delta;
+        checkWallCollision(0);
+        
         look_at = camera_pos + dir * 1;
         camera_heading *= .5;
         camera_pitch *= .5;
         camera_pos_delta = camera_pos_delta * .5;
         gluLookAt(camera_pos.x, camera_pos.y, camera_pos.z, look_at.x, look_at.y, look_at.z, camera_up.x, camera_up.y, camera_up.z);
     }
+    
+    void Update(float floorheight) {
+        real4 pitch_quat, heading_quat;
+        real3 angle;
+        angle = cross(dir, camera_up);
+        pitch_quat = Q_from_AngAxis(camera_pitch, angle);
+        heading_quat = Q_from_AngAxis(camera_heading, camera_up);
+        real4 temp = (pitch_quat % heading_quat);
+        temp = normalize(temp);
+        dir = quatRotate(dir, temp);
+        camera_pos += camera_pos_delta;
+        checkWallCollision(floorheight);
+        
+        look_at = camera_pos + dir * 1;
+        camera_heading *= .5;
+        camera_pitch *= .5;
+        camera_pos_delta = camera_pos_delta * .5;
+        gluLookAt(camera_pos.x, camera_pos.y, camera_pos.z, look_at.x, look_at.y, look_at.z, camera_up.x, camera_up.y, camera_up.z);
+    }
+
     void Forward() {
         camera_pos_delta += dir * scale;
     }

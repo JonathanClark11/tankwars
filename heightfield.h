@@ -1,4 +1,5 @@
 const int MAX_MAP_SIZE = 1024;
+const float MAP_SCALE = 0.2f;
 
 class HeightMap {
 private:

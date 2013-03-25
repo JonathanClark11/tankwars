@@ -58,7 +58,7 @@ bool wireframe = false;
 HeightMap hField;           //our terrain (map)
 SkyBox sbox;                //skybox
 Tank tanks[1];
-
+Tank player;                //player's tank
 
 GLfloat density = 0.001; //set the density to 0.3 which is acctually quite thick
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
@@ -99,6 +99,7 @@ void setup_lights() {
 
 
 void init(){
+    //hField.Create(heightmapFile, heightmapTexture, 256, 256);
     hField.Create(heightmapFile, heightmapTexture, 256, 256);
     char* SkyBoxTextures[6] = {"Data/textures/skybox/front.tga", "Data/textures/skybox/back.tga", "Data/textures/skybox/left.tga", "Data/textures/skybox/right.tga", "Data/textures/skybox/up.tga", "Data/textures/skybox/down.tga" };
     sbox.Create(SkyBoxTextures);
@@ -109,6 +110,7 @@ void init(){
         tanks[i] = Tank(tankmodelFile, tanktextureFile, 2);
         tanks[i].setPosition(Vec3(10, hField.getHeight(10, 3), 3)); //y= .70 for flat map
     }
+    player = Tank(tankmodelFile, tanktextureFile, 4);
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 
     glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );
@@ -169,9 +171,19 @@ void changeGLMode() {
     
 }
 
+
+
+
+void special_keyboard_callback( int key, int x, int y ){
+    player.specialKeyboardInput(key, x, y);
+}
 // keyboard callback
+
 void keyboard_callback( unsigned char key, int x, int y ){
     camera.CallBackKeyboardFunc(key, x, y);
+    
+    //player.keyboardInput(key, x, y);
+    
     switch( key ){
         case 27:
             quit = true;
@@ -224,23 +236,23 @@ void display_callback( void ){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    camera.Update();
+    camera.Update(hField.getHeight(camera.camera_pos.x, camera.camera_pos.z));
     glPushMatrix();
     
     glColor3f(1.0, 1.0, 1.0);
     
     hField.Render();
-    sbox.Render(camera.camera_pos.x,camera.camera_pos.y,camera.camera_pos.z,100,100,100);
+    sbox.Render(camera.camera_pos.x,camera.camera_pos.y,camera.camera_pos.z,1024,1024,1024);
     
     for (int i = 0; i < 1; i++) {
         tanks[i].drawTank();
-        //cout<<"Tank Position: "<<tanks[i].getPosition()[1]<<endl;
     }
+    player.setHeight(hField.getHeight(player.getPosition()[0], player.getPosition()[2]));
+    player.drawTank();
+    //cout<<player.getPosition()[0]<<", "<<player.getPosition()[1]<<", "<<player.getPosition()[2]<<endl;
     
     glPopMatrix();
-    
     drawOrientationLines();
-    
     // swap the front and back buffers to display the scene
     glutSetWindow( current_window );
     glutSwapBuffers();
@@ -300,9 +312,13 @@ int main( int argc, char **argv ){
     glutInitWindowSize( disp_width, disp_height );
     glutInitWindowPosition( 0, 100 );
     mother_window = glutCreateWindow( "Tank Wars" );
-    glutKeyboardFunc( keyboard_callback );
+
     glutDisplayFunc( display_callback );
     glutReshapeFunc( resize_callback );
+    
+    
+    glutKeyboardFunc( keyboard_callback );
+    glutSpecialFunc(special_keyboard_callback);
     
     glutPassiveMotionFunc(mouseMovement); //check for mouse movement
     glutMouseFunc(mouseFunc);

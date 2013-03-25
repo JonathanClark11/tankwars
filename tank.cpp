@@ -7,7 +7,8 @@
 //
 
 #include "tank.h"
-static const float modelYOffset = 0.68f;
+//static const float modelYOffset = 0.68f;
+static const float modelYOffset = 1.4f;
 //RENDERING
 void Tank::drawOrientationLines() {
     glBegin(GL_LINES);
@@ -45,9 +46,33 @@ void Tank::setColour(float r, float g, float b) {
 	color.g = g;
 	color.b = b;
 }
-
+void Tank::specialKeyboardInput(int key, int x, int y) {
+    switch( key ){
+        case GLUT_KEY_LEFT:    //left
+            position[0] += 0.2;
+            break;
+        case GLUT_KEY_UP:	//up
+            position[2] += 0.2;
+			break;
+        case GLUT_KEY_DOWN:	//down
+            position[2] -= 0.2;
+			break;
+        case GLUT_KEY_RIGHT:	//right
+            position[0] -= 0.2;
+			break;
+        default:
+            break;
+    }
+}
+void Tank::keyboardInput(unsigned char key, int x, int y) {
+    cout<<key<<endl;
+    
+}
 void Tank::setPosition(Vec3 newPos) {
     position = newPos;
+}
+void Tank::setHeight(float h) {
+    position[1] = h;
 }
 Vec3 Tank::getPosition() {
     return position;

@@ -17,6 +17,7 @@
 
 #include "objreader.h"
 #include "vector.h"
+#include <iostream.h>
 class Tank{
 private:
     struct Colour {
@@ -42,4 +43,8 @@ public:
     void setColour(float r, float g, float b);
     void setPosition(Vec3 newPos);
     Vec3 getPosition();
+    void setHeight(float h);
+    
+    void keyboardInput(unsigned char key, int x, int y);
+    void specialKeyboardInput(int key, int x, int y);
 };
