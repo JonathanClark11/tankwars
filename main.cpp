@@ -56,47 +56,25 @@ OpenGLCamera camera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
 bool wireframe = false;
 HeightMap hField;
 Tank tanks[5];
-GLfloat density = 0.3; //set the density to 0.3 which is acctually quite thick
 
-GLfloat fogColor[4] = {1.0, 0.0, 0.0, 1.0}; //set the for color to grey
 
-void init(){
-    hField.Create("heightField.raw", 512, 512);
-    hField.ResetPlane();
-    string tankmodel = "Data/models/shuttle.obj";
-    camera = OpenGLCamera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
-    
-    for (int i = 0; i < sizeof(tanks); i++) {
-        //tanks[i] = Tank("Data/models/shuttle.obj", 1);
-    }
-    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+GLfloat density = 0.01; //set the density to 0.3 which is acctually quite thick
+GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
 
-    glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_NORMALIZE );
-    glDepthFunc(GL_LEQUAL);
 
-    
-    glEnable (GL_FOG); //enable the fog
-    
-    glFogi (GL_FOG_MODE, GL_EXP2); //set the fog mode to GL_EXP2
-    
-    glFogfv (GL_FOG_COLOR, fogColor); //set the fog color toour color chosen above
-    
-    glFogf (GL_FOG_DENSITY, density); //set the density to the value above
-    
-    glHint (GL_FOG_HINT, GL_NICEST); // set the fog to look the nicest, may slow down on older cards
-    
-    
+
+void setup_lights() {
     // lighting stuff
-    GLfloat ambient[] = {0.0, 0.0, 0.0, 1.0};
-    GLfloat diffuse[] = {0.9, 0.9, 0.9, 1.0};
+    GLfloat ambient[] = {0.5, 0.5, 0.5, 0.5};
+    GLfloat diffuse[] = {0.2, 0.2, 0.2, 1.0};
     GLfloat specular[] = {0.4, 0.4, 0.4, 1.0};
+    
     GLfloat position0[] = {1.0, 1.0, 1.0, 0.0};
     glLightfv( GL_LIGHT0, GL_POSITION, position0 );
     glLightfv( GL_LIGHT0, GL_AMBIENT, ambient );
     glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
     glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
+    
     GLfloat position1[] = {-1.0, -1.0, -1.0, 0.0};
     glLightfv( GL_LIGHT1, GL_POSITION, position1 );
     glLightfv( GL_LIGHT1, GL_AMBIENT, ambient );
@@ -107,6 +85,41 @@ void init(){
     glEnable( GL_LIGHT0 );
     glEnable( GL_LIGHT1 );
     glEnable( GL_LIGHT2 );
+    
+}
+
+
+void init(){
+    hField.Create("Data/textures/texture.tga", 128, 128);
+    string tankmodel = "Data/models/shuttle.obj";
+    camera = OpenGLCamera(real3(10,1,0), real3(2, 1, 2), real3(0, 1, 0),0.5);
+    
+    for (int i = 0; i < 1; i++) {
+        tanks[i] = Tank("Data/models/shuttle.obj", "Data/textures/camo.tga", 1);
+        tanks[i].setPosition(Vec3(10, hField.getHeight(10, 3), 3)); //y= .70 for flat map
+    }
+    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+
+    glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );
+    glEnable(GL_CULL_FACE);
+    glEnable( GL_DEPTH_TEST );
+    glEnable( GL_NORMALIZE );
+    glDepthFunc(GL_LEQUAL);
+
+    
+    
+    //---------LOAD TEXTURES --------------
+    
+    
+    
+    glEnable (GL_FOG); //enable the fog
+    glFogi (GL_FOG_MODE, GL_EXP2); //set the fog mode to GL_EXP2
+    glFogfv (GL_FOG_COLOR, fogColor); //set the fog color toour color chosen above
+    glFogf (GL_FOG_DENSITY, density); //set the density to the value above
+    glHint (GL_FOG_HINT, GL_NICEST); // set the fog to look the nicest, may slow down on older cards
+    
+    
+    setup_lights();
     
     glEnable( GL_COLOR_MATERIAL );
     
@@ -119,7 +132,6 @@ void cleanup(){
     /////////////////////////////////////////////////////////////
 
 }
-
 
 
 //////////////////////////////////////////////////////////////////
@@ -166,6 +178,21 @@ void keyboard_callback( unsigned char key, int x, int y ){
     
 }
 
+void drawOrientationLines() {
+    glBegin(GL_LINES);
+    glColor3f( 1.0f, 0.0f, 0.0f );
+    glVertex3f( 1.0f, 0.0f, 0.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    glColor3f( 0.0f, 1.0f, 0.0f );
+    glVertex3f( 0.0f, 1.0f, 0.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    glColor3f( 0.0f, 0.0f, 1.0f );
+    glVertex3f( 0.0f, 0.0f, 1.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    glEnd();
+    glColor3f(1.0, 1.0, 1.0);
+}
+
 // display callback
 void display_callback( void ){
     int current_window;
@@ -191,20 +218,15 @@ void display_callback( void ){
     glColor3f(1.0, 1.0, 1.0);
     //glTranslatef(0, -100, 0);
     hField.Render();
+    
+    for (int i = 0; i < sizeof(tanks); i++) {
+        tanks[i].drawTank();
+        //cout<<"Tank Position: "<<tanks[i].getPosition()[1]<<endl;
+    }
     glPopMatrix();
-
-    glBegin(GL_LINES);
-    glColor3f( 1.0f, 0.0f, 0.0f );
-    glVertex3f( 1.0f, 0.0f, 0.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    glColor3f( 0.0f, 1.0f, 0.0f );
-    glVertex3f( 0.0f, 1.0f, 0.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    glColor3f( 0.0f, 0.0f, 1.0f );
-    glVertex3f( 0.0f, 0.0f, 1.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    glEnd();
-
+    
+    drawOrientationLines();
+    
     // swap the front and back buffers to display the scene
     glutSetWindow( current_window );
     glutSwapBuffers();

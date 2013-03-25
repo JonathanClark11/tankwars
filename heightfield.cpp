@@ -15,10 +15,19 @@
 #endif
 
 #include <fstream>
-#include <iostream.h>
 #include "heightfield.h"
+#include "texloader.h"
 
-bool HeightMap::Create(char *hFileName, const int hWidth, const int hHeight){	
+bool HeightMap::Create(char *texturePath, const int hWidth, const int hHeight){
+	hmHeight = hHeight;
+	hmWidth = hWidth;
+    
+	ResetPlane();
+    TexID = TextureLoader::LoadTexture(texturePath);
+	return true;
+}
+
+bool HeightMap::Create(char *hFileName, char *texturePath, const int hWidth, const int hHeight){	
 	hmHeight = hHeight;
 	hmWidth = hWidth;
 
@@ -26,29 +35,37 @@ bool HeightMap::Create(char *hFileName, const int hWidth, const int hHeight){
 	fp = fopen(hFileName, "rb");
 	fread(hHeightField, 1, hWidth * hHeight, fp);
 	fclose(fp);
-    
-    //SwiftTextureJpeg(tID, "texture.jpg", 0);
+    TexID = TextureLoader::LoadTexture(texturePath);
 	return true;
 }
 
 void HeightMap::Render(void){
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, tID[0]);
+    glBindTexture(GL_TEXTURE_2D, TexID);
     for (int hMapX = 0; hMapX < hmWidth; hMapX++){
         for (int hMapZ = 0; hMapZ < hmHeight; hMapZ++){
             glBegin(GL_TRIANGLE_STRIP);
+            
             glTexCoord2f((float)hMapX / hmWidth, (float)hMapZ / hmHeight);
             glVertex3f(hMapX, hHeightField[hMapX][hMapZ], hMapZ);
+            
             glTexCoord2f((float)hMapX / hmWidth, (float)(hMapZ + 1) / hmHeight) ;
             glVertex3f(hMapX, hHeightField[hMapX][hMapZ + 1], hMapZ + 1);
+            
             glTexCoord2f((float)(hMapX + 1) / hmWidth, (float)hMapZ / hmHeight);
             glVertex3f(hMapX + 1, hHeightField[hMapX + 1][hMapZ], hMapZ);
+            
             glTexCoord2f((float)(hMapX + 1) / hmWidth, (float)(hMapZ + 1) / hmHeight);
             glVertex3f(hMapX + 1, hHeightField[hMapX + 1][hMapZ + 1], hMapZ + 1);
+            
             glEnd();
         }
     }
     glDisable(GL_TEXTURE_2D);
+}
+
+char HeightMap::getHeight(int x, int z) {
+    return hHeightField[x][z];
 }
 
 void HeightMap::ResetPlane() {
@@ -57,5 +74,4 @@ void HeightMap::ResetPlane() {
             hHeightField[hMapX][hMapZ] = 0;
         }
     }
-    cout<<hHeightField<<endl;
 }

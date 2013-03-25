@@ -31,13 +31,15 @@ private:
 public:
 	Colour color;
     Tank() : position(0, 0, 0),rotation(0, 0, 0) { }
-	Tank(char* modelFilepath, float size) : position(0, 0, 0),rotation(0,0,0){
+	Tank(char* modelFilepath, char* texturePath, float size) : position(0, 0, 0),rotation(0,0,0){
 		model.loadObj(modelFilepath);
 		model.centerObject(); //center model around origin
 		model.resizeObject(); //resize model, coordinates scaled to [-1,1]x[-1,1]x[-1x1]};
 	}
 
     void drawTank();
+    void drawOrientationLines();
     void setColour(float r, float g, float b);
     void setPosition(Vec3 newPos);
+    Vec3 getPosition();
 };
