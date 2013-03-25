@@ -58,10 +58,17 @@ HeightMap hField;
 Tank tanks[5];
 
 
-GLfloat density = 0.01; //set the density to 0.3 which is acctually quite thick
+GLfloat density = 0.001; //set the density to 0.3 which is acctually quite thick
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
 
 
+/*
+    Config
+ */
+char* heightmapFile = "Data/maps/heightField.raw";
+char* heightmapTexture = "Data/textures/texture.tga";
+char* tankmodelFile = "Data/models/tank.obj";
+char* tanktextureFile = "Data/textures/camo.tga";
 
 void setup_lights() {
     // lighting stuff
@@ -90,12 +97,11 @@ void setup_lights() {
 
 
 void init(){
-    hField.Create("Data/textures/texture.tga", 128, 128);
-    string tankmodel = "Data/models/shuttle.obj";
-    camera = OpenGLCamera(real3(10,1,0), real3(2, 1, 2), real3(0, 1, 0),0.5);
+    hField.Create(heightmapFile, heightmapTexture, 256, 256);
+    camera = OpenGLCamera(real3(10,hField.getHeight(10, 3) + 5,-5), real3(2, 1, 2), real3(0, 1, 0),0.5);
     
     for (int i = 0; i < 1; i++) {
-        tanks[i] = Tank("Data/models/shuttle.obj", "Data/textures/camo.tga", 1);
+        tanks[i] = Tank(tankmodelFile, tanktextureFile, 2);
         tanks[i].setPosition(Vec3(10, hField.getHeight(10, 3), 3)); //y= .70 for flat map
     }
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
