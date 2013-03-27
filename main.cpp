@@ -67,7 +67,7 @@ GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
 /*
     Config
  */
-char* heightmapFile = "Data/maps/heightField.raw";
+char* heightmapFile = "Data/maps/heightmap_result.raw";
 char* heightmapTexture = "Data/textures/texture.tga";
 char* tankmodelFile = "Data/models/tank.obj";
 char* tanktextureFile = "Data/textures/camo.tga";
@@ -100,7 +100,7 @@ void setup_lights() {
 
 void init(){
     //hField.Create(heightmapFile, heightmapTexture, 256, 256);
-    hField.Create(heightmapFile, heightmapTexture, 256, 256);
+    hField.Create(heightmapTexture);
     char* SkyBoxTextures[6] = {"Data/textures/skybox/front.tga", "Data/textures/skybox/back.tga", "Data/textures/skybox/left.tga", "Data/textures/skybox/right.tga", "Data/textures/skybox/up.tga", "Data/textures/skybox/down.tga" };
     sbox.Create(SkyBoxTextures);
     

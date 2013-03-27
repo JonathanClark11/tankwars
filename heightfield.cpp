@@ -18,26 +18,23 @@
 #include "heightfield.h"
 #include "texloader.h"
 
-bool HeightMap::Create(char *texturePath, const int hWidth, const int hHeight){
-	hmHeight = hHeight;
-	hmWidth = hWidth;
-    
+
+#include <iostream.h>
+#define     STEP_SIZE   8
+
+
+bool HeightMap::Create(char *texturePath){
 	ResetPlane();
     TexID = TextureLoader::LoadTexture(texturePath);
 	return true;
 }
 
-bool HeightMap::Create(char *hFileName, char *texturePath, const int hWidth, const int hHeight){	
-	hmHeight = hHeight;
-	hmWidth = hWidth;
+bool HeightMap::Create(char *hFileName, char *texturePath){	
 	FILE *fp;
 
     fp = fopen(hFileName, "rb");
     if (fp) {
-//        cout<<"File Exists"<<endl;
-        fread(hHeightField, 1, hWidth * hHeight, fp);
-    } else {
-       //File doesn't exist
+        fread(hHeightField, 1, MAP_SIZE * MAP_SIZE, fp);
     }
     
 	fclose(fp);
@@ -46,38 +43,44 @@ bool HeightMap::Create(char *hFileName, char *texturePath, const int hWidth, con
 }
 
 void HeightMap::Render(void){
+    int X, Z;
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, TexID);
-    for (int hMapX = 0; hMapX < hmWidth; hMapX++){
-        for (int hMapZ = 0; hMapZ < hmHeight; hMapZ++){
-            glBegin(GL_TRIANGLE_STRIP);
+    glBegin( GL_QUADS );                // Render Polygons
+
+    for ( X = 0; X < (MAP_SIZE-STEP_SIZE); X += STEP_SIZE )
+        for ( Z = 0; Z < (MAP_SIZE-STEP_SIZE); Z += STEP_SIZE )
+        {
+            glTexCoord2f((float)X / MAP_SIZE, (float)Z / MAP_SIZE);
+            glVertex3i(X, getHeight(X,Z), Z);            // Send This Vertex To OpenGL To Be Rendered
+
+            glTexCoord2f((float)X / MAP_SIZE, (float)(Z + STEP_SIZE) / MAP_SIZE) ;
+            glVertex3i(X, getHeight(X,Z+STEP_SIZE), Z + STEP_SIZE);            // Send This Vertex To OpenGL To Be Rendered
             
-            glTexCoord2f((float)hMapX / hmWidth, (float)hMapZ / hmHeight);
-            glVertex3f(hMapX, hHeightField[hMapX][hMapZ] * MAP_SCALE, hMapZ);
-            
-            glTexCoord2f((float)hMapX / hmWidth, (float)(hMapZ + 1) / hmHeight) ;
-            glVertex3f(hMapX, hHeightField[hMapX][hMapZ + 1] * MAP_SCALE, hMapZ + 1);
-            
-            glTexCoord2f((float)(hMapX + 1) / hmWidth, (float)hMapZ / hmHeight);
-            glVertex3f(hMapX + 1, hHeightField[hMapX + 1][hMapZ] * MAP_SCALE, hMapZ);
-            
-            glTexCoord2f((float)(hMapX + 1) / hmWidth, (float)(hMapZ + 1) / hmHeight);
-            glVertex3f(hMapX + 1, hHeightField[hMapX + 1][hMapZ + 1] * MAP_SCALE, hMapZ + 1);
-            
-            glEnd();
+            glTexCoord2f((float)(X + STEP_SIZE) / MAP_SIZE, (float)(Z+ STEP_SIZE) / MAP_SIZE);
+            glVertex3i(X+STEP_SIZE, getHeight(X+STEP_SIZE,Z+STEP_SIZE), Z+STEP_SIZE);            // Send This Vertex To OpenGL To Be Rendered
+
+            glTexCoord2f((float)(X + STEP_SIZE) / MAP_SIZE, (float)Z / MAP_SIZE);
+            glVertex3i(X+STEP_SIZE, getHeight(X+STEP_SIZE,Z), Z);            // Send This Vertex To OpenGL To Be Rendered
         }
-    }
+    glEnd();
+
     glDisable(GL_TEXTURE_2D);
 }
 
-char HeightMap::getHeight(int x, int z) {
-    return hHeightField[x][z] * MAP_SCALE;
+int HeightMap::getHeight(int x, int z) {
+    int X = x % MAP_SIZE;                   // Error Check Our x Value
+    int Z = z % MAP_SIZE;                   // Error Check Our y Value
+    
+    if(!hHeightField) return 0;               // Make Sure Our Data Is Valid
+    int height = hHeightField[X + (Z * MAP_SIZE)];
+    if (height < 0) return 0;
+    //cout<<hHeightField[X + (Z * MAP_SIZE)]<<" : "<<height<<endl;
+    return height;
 }
 
 void HeightMap::ResetPlane() {
-    for (int hMapX = 0; hMapX < hmWidth; hMapX++){
-        for (int hMapZ = 0; hMapZ < hmHeight; hMapZ++){
-            hHeightField[hMapX][hMapZ] = 0;
-        }
+    for (int i = 0; i < MAP_SIZE; i++){
+        hHeightField[i] = 0;
     }
 }

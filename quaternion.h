@@ -205,7 +205,7 @@ public:
         
         if (camera_pos.y > 1024) {
             camera_pos.y = 1024;
-        } else if (camera_pos.y < floorheight + 0.2) {
+        } else if (camera_pos.y < floorheight + 1.0) {
             camera_pos.y = floorheight + 1.0;
         }
     }

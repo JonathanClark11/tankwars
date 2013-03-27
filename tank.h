@@ -17,7 +17,7 @@
 
 #include "objreader.h"
 #include "vector.h"
-#include <iostream.h>
+
 class Tank{
 private:
     struct Colour {
@@ -28,7 +28,7 @@ private:
     objReader model;
     void draw();		//draws the tank
     void loadModel();
-    
+    float scale;        //size of tank
 public:
 	Colour color;
     Tank() : position(0, 0, 0),rotation(0, 0, 0) { }
@@ -36,6 +36,7 @@ public:
 		model.loadObj(modelFilepath);
 		model.centerObject(); //center model around origin
 		model.resizeObject(); //resize model, coordinates scaled to [-1,1]x[-1,1]x[-1x1]};
+        scale = size;
 	}
 
     void drawTank();

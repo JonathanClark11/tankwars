@@ -7,8 +7,7 @@
 //
 
 #include "tank.h"
-//static const float modelYOffset = 0.68f;
-static const float modelYOffset = 1.4f;
+static const float modelYOffset = 0.68f;
 //RENDERING
 void Tank::drawOrientationLines() {
     glBegin(GL_LINES);
@@ -36,8 +35,10 @@ void Tank::drawTank() {
     glEnable(GL_COLOR_MATERIAL);
     
     glTranslatef(position[0], position[1], position[2]);
-    //drawOrientationLines();
-    glTranslatef(0, modelYOffset, 0);
+    drawOrientationLines();
+
+    glScalef(scale, scale, scale);
+    glTranslatef(0, modelYOffset, 0);   //do after scaling so it's always the correct height
 	model.displayObj();
     glPopMatrix();
 }
@@ -65,7 +66,7 @@ void Tank::specialKeyboardInput(int key, int x, int y) {
     }
 }
 void Tank::keyboardInput(unsigned char key, int x, int y) {
-    cout<<key<<endl;
+    //cout<<key<<endl;
     
 }
 void Tank::setPosition(Vec3 newPos) {
