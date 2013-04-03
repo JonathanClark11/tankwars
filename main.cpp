@@ -110,7 +110,7 @@ void init(){
         tanks[i] = Tank(tankmodelFile, tanktextureFile, 2);
         tanks[i].setPosition(Vec3(10, hField.getHeight(10, 3), 3)); //y= .70 for flat map
     }
-    player = Tank(tankmodelFile, tanktextureFile, 4);
+    player = Tank(tankmodelFile, tanktextureFile, 2);
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 
     glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );

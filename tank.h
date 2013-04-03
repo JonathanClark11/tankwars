@@ -17,6 +17,7 @@
 
 #include "objreader.h"
 #include "vector.h"
+#include "boundingbox.h"
 
 class Tank{
 private:
@@ -29,6 +30,7 @@ private:
     void draw();		//draws the tank
     void loadModel();
     float scale;        //size of tank
+    BoundingBox bbox;
 public:
 	Colour color;
     Tank() : position(0, 0, 0),rotation(0, 0, 0) { }
@@ -48,4 +50,10 @@ public:
     
     void keyboardInput(unsigned char key, int x, int y);
     void specialKeyboardInput(int key, int x, int y);
+    
+    //gameplay functions
+    void killTank();
+    void shoot(Vec3 direction);
+    void hasCollision(Vec3 position, Vec3 size);
+    void drawBoundingBox();
 };

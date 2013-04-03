@@ -7,7 +7,10 @@
 //
 
 #include "tank.h"
+#include "math.h"
+
 static const float modelYOffset = 0.68f;
+static const float modelZOffset = -0.4f;
 //RENDERING
 void Tank::drawOrientationLines() {
     glBegin(GL_LINES);
@@ -33,14 +36,22 @@ void Tank::drawTank() {
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
-    
+
+
     glTranslatef(position[0], position[1], position[2]);
+    glRotatef(rotation[1], 0, 1, 0);
+    
     drawOrientationLines();
 
     glScalef(scale, scale, scale);
-    glTranslatef(0, modelYOffset, 0);   //do after scaling so it's always the correct height
+    glTranslatef(0, modelYOffset, modelZOffset);   //do after scaling so it's always the correct height
 	model.displayObj();
+    
+    
+    
     glPopMatrix();
+    bbox = BoundingBox(position, -1, rotation);
+    bbox.Render();
 }
 void Tank::setColour(float r, float g, float b) {
 	color.r = r;
@@ -50,16 +61,18 @@ void Tank::setColour(float r, float g, float b) {
 void Tank::specialKeyboardInput(int key, int x, int y) {
     switch( key ){
         case GLUT_KEY_LEFT:    //left
-            position[0] += 0.2;
+            rotation[1] += 3;
             break;
+        case GLUT_KEY_RIGHT:	//right
+            rotation[1] -= 3;
+			break;
         case GLUT_KEY_UP:	//up
-            position[2] += 0.2;
+            position[2] += 0.2 * cos(rotation[1] * 3.14159265 / 180);
+            position[0] += 0.2 * sin(rotation[1] * 3.14159265 / 180);
 			break;
         case GLUT_KEY_DOWN:	//down
-            position[2] -= 0.2;
-			break;
-        case GLUT_KEY_RIGHT:	//right
-            position[0] -= 0.2;
+            position[2] -= 0.2 * cos(rotation[1] * 3.14159265 / 180);
+            position[0] -= 0.2 * sin(rotation[1] * 3.14159265 / 180);
 			break;
         default:
             break;
@@ -77,4 +90,34 @@ void Tank::setHeight(float h) {
 }
 Vec3 Tank::getPosition() {
     return position;
+}
+
+void Tank::killTank() {
+    //TODO: PARTICLE EMISSION
+    //BLOWUP TANK
+    //DESTROY
+}
+void Tank::shoot(Vec3 direction) {
+    //create a bullet with the current rotation directory.
+    
+}
+void Tank::hasCollision(Vec3 position, Vec3 size) {
+
+}
+
+void Tank::drawBoundingBox() {
+    glBegin(GL_LINES);
+    glColor3f( 1.0f, 0.0f, 0.0f );
+    glVertex3f( 1.0f, 0.0f, 0.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    
+    
+    glVertex3f( 0.0f, 1.0f, 0.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    
+    glVertex3f( 0.0f, 0.0f, 1.0f );
+    glVertex3f( 0.0f, 0.0f, 0.0f );
+    
+    glEnd();
+    glColor3f(1.0, 1.0, 1.0);
 }
