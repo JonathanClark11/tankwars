@@ -59,11 +59,13 @@ HeightMap hField;           //our terrain (map)
 SkyBox sbox;                //skybox
 Tank *tanks[5];
 Tank player;                //player's tank
+bool shoot = false;
 //Projectile bullets[100];     //max 100 bullets on the map.
-ObjectManager scene;         //manager for scene. all objects should be added to this (exception: player and heightmap)
+ObjectManager *scene;         //manager for scene. all objects should be added to this (exception: player and heightmap)
 
 GLfloat density = 0.00125; //set the density to 0.3 which is acctually quite thick
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
+
 
 
 /*
@@ -99,9 +101,7 @@ void setup_lights() {
     
 }
 
-
-void init(){
-    scene = ObjectManager();
+void SetupScene() {
     //hField.Create(heightmapFile, heightmapTexture, 256, 256);
     hField.Create(heightmapTexture);
     
@@ -111,19 +111,27 @@ void init(){
     
     camera = OpenGLCamera(real3(10,hField.getHeight(10, 3) + 2,-5), real3(2, 1, 2), real3(0, 1, 0),0.5);
     
-    //enemy tank 1
-    tanks[0] = new Tank(tankmodelFile, tanktextureFile, 2);
-    tanks[0]->setPosition(Vec3(10, hField.getHeight(10, 3), 10));
-    tanks[0]->setRotation(Vec3(0, 180, 0));
-    scene.AddObject(tanks[0]);
-
-    
+    //create enemy tanks
+    for (int i = 0; i < 1; i++) {
+        tanks[i] = new Tank(tankmodelFile, tanktextureFile, 2);
+        tanks[i]->setPosition(Vec3(8+(i*1.2), hField.getHeight(8+(i*1.2), 10), 10));
+        tanks[i]->setRotation(Vec3(0, 180, 0));
+        scene->AddObject(tanks[i]);
+    }
     
     //player setup
     player = Tank(tankmodelFile, tanktextureFile, 2);
     player.setPosition(Vec3(10, hField.getHeight(10, 3), 4));
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+}
 
+void init(){
+    scene = new ObjectManager();
+    
+    SetupScene();
+
+    
+    
     glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );
     glEnable(GL_CULL_FACE);
     glEnable( GL_DEPTH_TEST );
@@ -154,7 +162,7 @@ void cleanup(){
     /////////////////////////////////////////////////////////////
     /// TODO: Put your teardown code here! //////////////////////
     /////////////////////////////////////////////////////////////
-
+    
 }
 
 
@@ -188,6 +196,10 @@ void changeGLMode() {
 void special_keyboard_callback( int key, int x, int y ){
     player.specialKeyboardInput(key, x, y);
 }
+void special_keyboard_up_callback( int key, int x, int y ){
+    player.specialKeyboardInputUp(key, x, y);
+}
+
 // keyboard callback
 
 void keyboard_callback( unsigned char key, int x, int y ){
@@ -202,14 +214,17 @@ void keyboard_callback( unsigned char key, int x, int y ){
         case 9:				//TAB	(wireframe/fill)
 			changeGLMode();
 			break;
+        case 32:    //space (shoot)
+            shoot = true;
         default:
             break;
     }
-    
-    /////////////////////////////////////////////////////////////
-    /// TODO: Put your keyboard code here! //////////////////////
-    /////////////////////////////////////////////////////////////
-    
+}
+void keyboard_up_callback( unsigned char key, int x, int y ){
+    player.keyboardInputUp(key, x, y);
+    if (key == 32) {
+        shoot = false;
+    }
 }
 
 void drawOrientationLines() {
@@ -229,6 +244,11 @@ void drawOrientationLines() {
 
 // display callback
 void display_callback( void ){
+    if (shoot == true) {
+        player.shoot(player.getRotation(), scene);
+    }
+    
+    
     int current_window;
     
     // retrieve the currently active window
@@ -258,7 +278,7 @@ void display_callback( void ){
     
     sbox.Render(camera.camera_pos.x,camera.camera_pos.y,camera.camera_pos.z,1024,1024,1024);
     
-    scene.RenderObjects();
+    scene->RenderObjects();
     
     player.setHeight(hField.getHeight(player.getPosition()[0], player.getPosition()[2]));
     player.Render();
@@ -270,26 +290,13 @@ void display_callback( void ){
     glutSwapBuffers();
 }
 
-// not exactly a callback, but sets a timer to call itself
-// in an endless loop to update the program
 void idle( int value ){
-    
-    // if the user wants to quit the program, then exit the
-    // function without resetting the timer or triggering
-    // a display update
     if( quit ){
-        // cleanup any allocated memory
         cleanup();
-        
-        // perform hard exit of the program, since glutMainLoop()
-        // will never return
         exit(0);
     }
-    
-    /////////////////////////////////////////////////////////////
-    /// TODO: Put your idle code here! //////////////////////////
-    /////////////////////////////////////////////////////////////
-    scene.UpdateObjects();
+
+    scene->UpdateObjects();
     
     // set the currently active window to the mothership and
     // request a redisplay
@@ -328,9 +335,11 @@ int main( int argc, char **argv ){
     glutDisplayFunc( display_callback );
     glutReshapeFunc( resize_callback );
     
-    
+    //glutIgnoreKeyRepeat(true);
     glutKeyboardFunc( keyboard_callback );
+    glutKeyboardUpFunc( keyboard_up_callback );
     glutSpecialFunc(special_keyboard_callback);
+    glutSpecialUpFunc(special_keyboard_up_callback);
     
     glutPassiveMotionFunc(mouseMovement); //check for mouse movement
     glutMouseFunc(mouseFunc);

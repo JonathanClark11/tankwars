@@ -6,6 +6,8 @@
 //
 //
 
+#include <iostream.h>
+
 #include "tank.h"
 #include "math.h"
 static const float modelYOffset = 0.68f;
@@ -26,12 +28,37 @@ void Tank::drawOrientationLines() {
     glColor3f(1.0, 1.0, 1.0);
 }
 
-void Tank::Update() {
-        //ai and movement here.
+void Tank::handleKeyboard() {
+    if (keyboard[LEFT] == 1) {
+        rotation[1] += 3;
+    }
+    if (keyboard[RIGHT] == 1) {
+        rotation[1] -= 3;
+    }
+    if (keyboard[UP] == 1) {
+        position[2] += 0.2 * cos(rotation[1] * 3.14159265 / 180);
+        position[0] += 0.2 * sin(rotation[1] * 3.14159265 / 180);
+    }
+    if (keyboard[DOWN] == 1) {
+        position[2] -= 0.2 * cos(rotation[1] * 3.14159265 / 180);
+        position[0] -= 0.2 * sin(rotation[1] * 3.14159265 / 180);
+    }
+    if (keyboard[SPACE] == 1) {
+        //shoot(rotation, objManager);
+    }
 }
 
+void Tank::Update() {
+        //ai and movement here.
+    //handleKeyboard();
+}
+
+void Tank::CheckCollision() {
+    //if (position[0] > 1024 || position[0] < 0 ||
+}
 
 void Tank::Render() {
+    handleKeyboard();
     glPushMatrix();
     
     GLfloat mat_specular[] = {0.3, 0.3, 0.3, 1.0};
@@ -52,11 +79,9 @@ void Tank::Render() {
 	model.displayObj();
     
     
-    
     glPopMatrix();
     bbox = BoundingBox(position, -1, rotation);
     bbox.Render();
-    //bullets[0].Render();
 }
 
 
@@ -65,37 +90,68 @@ void Tank::setColour(float r, float g, float b) {
 	color.g = g;
 	color.b = b;
 }
+
+
+/*
+ -----------KEYBOARD INPUT-----------
+ */
 void Tank::specialKeyboardInput(int key, int x, int y) {
     switch( key ){
         case GLUT_KEY_LEFT:    //left
-            rotation[1] += 3;
+            keyboard[LEFT] = 1;
             break;
         case GLUT_KEY_RIGHT:	//right
-            rotation[1] -= 3;
+            keyboard[RIGHT] = 1;
 			break;
         case GLUT_KEY_UP:	//up
-            position[2] += 0.2 * cos(rotation[1] * 3.14159265 / 180);
-            position[0] += 0.2 * sin(rotation[1] * 3.14159265 / 180);
+            keyboard[UP] = 1;
 			break;
         case GLUT_KEY_DOWN:	//down
-            position[2] -= 0.2 * cos(rotation[1] * 3.14159265 / 180);
-            position[0] -= 0.2 * sin(rotation[1] * 3.14159265 / 180);
+            keyboard[DOWN] = 1;
+			break;
+        default:
+            break;
+    }
+}
+void Tank::specialKeyboardInputUp(int key, int x, int y) {
+    switch( key ){
+        case GLUT_KEY_LEFT:    //left
+            keyboard[LEFT] = 0;
+            break;
+        case GLUT_KEY_RIGHT:	//right
+            keyboard[RIGHT] = 0;
+			break;
+        case GLUT_KEY_UP:	//up
+            keyboard[UP] = 0;
+			break;
+        case GLUT_KEY_DOWN:	//down
+            keyboard[DOWN] = 0;
 			break;
         default:
             break;
     }
 }
 void Tank::keyboardInput(unsigned char key, int x, int y) {
-    //cout<<key<<endl;
     switch (key) {
         case 32:
-            shoot(rotation);
+            keyboard[SPACE] = 1;
             break;
-            
     }
 }
+void Tank::keyboardInputUp(unsigned char key, int x, int y) {
+    switch (key) {
+        case 32:
+            keyboard[SPACE] = 0;
+            break;
+    }
+}
+
+
 void Tank::setRotation(Vec3 newRotation) {
     rotation = newRotation;
+}
+Vec3 Tank::getRotation() {
+    return rotation;
 }
 void Tank::setPosition(Vec3 newPos) {
     position = newPos;
@@ -112,8 +168,8 @@ void Tank::killTank() {
     //BLOWUP TANK
     //DESTROY
 }
-void Tank::shoot(Vec3 direction) {
+void Tank::shoot(Vec3 direction, ObjectManager *objManager) {
     //create a bullet with the current rotation directory.
-    Projectile bullet = Projectile(position, direction);
-    bullets[0] = bullet;
+    Projectile *bullet = new Projectile(position, direction);
+    objManager->AddObject(bullet);
 }

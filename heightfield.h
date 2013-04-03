@@ -1,4 +1,4 @@
-const int MAP_SIZE = 256;
+const int MAP_SIZE = 128;
 const float MAP_SCALE = 0.2f;
 
 class HeightMap {

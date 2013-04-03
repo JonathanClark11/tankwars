@@ -20,7 +20,7 @@
 #include "boundingbox.h"
 #include "projectile.h"
 #include "gameobject.h"
-
+#include "objectmanager.h"
 class Tank : public GameObject {
 private:
     struct Colour {
@@ -37,7 +37,11 @@ private:
     float scale;        //size of tank
     
     BoundingBox bbox;
-    Projectile bullets[20];
+    
+    
+    //keyboard input
+    enum KEYS { LEFT, RIGHT, UP, DOWN, SPACE };
+    int keyboard[5];
     
 public:
 
@@ -48,8 +52,12 @@ public:
 		model.centerObject(); //center model around origin
 		model.resizeObject(); //resize model, coordinates scaled to [-1,1]x[-1,1]x[-1x1]};
         scale = size;
+        for (int i = 0; i < 5; i++) {
+            keyboard[i] = 0;
+        }
 	}
 
+    void CheckCollision();
     void Render();
     void Update();
     
@@ -57,14 +65,18 @@ public:
 
     void setColour(float r, float g, float b);
     void setRotation(Vec3 newRotation);
+    Vec3 getRotation();
     void setPosition(Vec3 newPos);
     Vec3 getPosition();
     void setHeight(float h);
     
     void keyboardInput(unsigned char key, int x, int y);
     void specialKeyboardInput(int key, int x, int y);
+    void keyboardInputUp(unsigned char key, int x, int y);
+    void specialKeyboardInputUp(int key, int x, int y);
+    void handleKeyboard();
     
     //gameplay functions
     void killTank();
-    void shoot(Vec3 direction);
+    void shoot(Vec3 direction, ObjectManager *objManager);
 };

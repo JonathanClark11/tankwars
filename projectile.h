@@ -14,6 +14,7 @@ public:
         velocity = 1.0f;
     }
     
+    void CheckCollision(GameObject *obj);
     void Render();
     void Update();
 };
