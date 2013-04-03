@@ -1,5 +1,6 @@
 #include "vector.h"
-class Projectile {
+#include "gameobject.h"
+class Projectile : public GameObject {
 private:
     Vec3 position;
     Vec3 direction;
@@ -13,6 +14,6 @@ public:
         velocity = 1.0f;
     }
     
-    void Update();
     void Render();
+    void Update();
 };

@@ -19,7 +19,7 @@
 #include <string>
 #include <math.h>
 
-
+#include "scenemanager.h"
 #include "quaternion.h"
 #include "tank.h"
 #include "skybox.h"
@@ -60,6 +60,7 @@ SkyBox sbox;                //skybox
 Tank tanks[1];
 Tank player;                //player's tank
 //Projectile bullets[100];     //max 100 bullets on the map.
+SceneManager scene;         //manager for scene. all objects should be added to this (exception: player and heightmap)
 
 GLfloat density = 0.00125; //set the density to 0.3 which is acctually quite thick
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
@@ -100,6 +101,7 @@ void setup_lights() {
 
 
 void init(){
+    scene = SceneManager();
     //hField.Create(heightmapFile, heightmapTexture, 256, 256);
     hField.Create(heightmapTexture);
     char* SkyBoxTextures[6] = {"Data/textures/skybox/front.tga", "Data/textures/skybox/back.tga", "Data/textures/skybox/left.tga", "Data/textures/skybox/right.tga", "Data/textures/skybox/up.tga", "Data/textures/skybox/down.tga" };
@@ -247,6 +249,8 @@ void display_callback( void ){
     hField.Render();
     sbox.Render(camera.camera_pos.x,camera.camera_pos.y,camera.camera_pos.z,1024,1024,1024);
     
+    scene.RenderObjects();
+    
     for (int i = 0; i < 1; i++) {
         tanks[i].drawTank();
     }
@@ -280,7 +284,7 @@ void idle( int value ){
     /////////////////////////////////////////////////////////////
     /// TODO: Put your idle code here! //////////////////////////
     /////////////////////////////////////////////////////////////
-
+    scene.UpdateObjects();
     
     // set the currently active window to the mothership and
     // request a redisplay

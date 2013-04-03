@@ -19,21 +19,29 @@
 #include "vector.h"
 #include "boundingbox.h"
 #include "projectile.h"
-class Tank{
+#include "gameobject.h"
+
+class Tank : public GameObject {
 private:
     struct Colour {
         float r, g, b;				//Colour of tank
     };
     Vec3 position;
     Vec3 rotation;
+    
     objReader model;
+    Colour color;
+    
     void draw();		//draws the tank
     void loadModel();
     float scale;        //size of tank
+    
     BoundingBox bbox;
     Projectile bullets[20];
+    
 public:
-	Colour color;
+
+    
     Tank() : position(0, 0, 0),rotation(0, 0, 0) { }
 	Tank(char* modelFilepath, char* texturePath, float size) : position(0, 0, 0),rotation(0,0,0){
 		model.loadObj(modelFilepath);
