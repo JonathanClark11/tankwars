@@ -59,8 +59,9 @@ HeightMap hField;           //our terrain (map)
 SkyBox sbox;                //skybox
 Tank tanks[1];
 Tank player;                //player's tank
+//Projectile bullets[100];     //max 100 bullets on the map.
 
-GLfloat density = 0.001; //set the density to 0.3 which is acctually quite thick
+GLfloat density = 0.00125; //set the density to 0.3 which is acctually quite thick
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
 
 
@@ -104,13 +105,15 @@ void init(){
     char* SkyBoxTextures[6] = {"Data/textures/skybox/front.tga", "Data/textures/skybox/back.tga", "Data/textures/skybox/left.tga", "Data/textures/skybox/right.tga", "Data/textures/skybox/up.tga", "Data/textures/skybox/down.tga" };
     sbox.Create(SkyBoxTextures);
     
-    camera = OpenGLCamera(real3(10,hField.getHeight(10, 3) + 5,-5), real3(2, 1, 2), real3(0, 1, 0),0.5);
+    camera = OpenGLCamera(real3(10,hField.getHeight(10, 3) + 2,-5), real3(2, 1, 2), real3(0, 1, 0),0.5);
     
     for (int i = 0; i < 1; i++) {
         tanks[i] = Tank(tankmodelFile, tanktextureFile, 2);
-        tanks[i].setPosition(Vec3(10, hField.getHeight(10, 3), 3)); //y= .70 for flat map
+        tanks[i].setPosition(Vec3(10, hField.getHeight(10, 3), 10)); //y= .70 for flat map
+        tanks[i].setRotation(Vec3(0, 180, 0));
     }
     player = Tank(tankmodelFile, tanktextureFile, 2);
+    player.setPosition(Vec3(10, hField.getHeight(10, 3), 4));
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 
     glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );
@@ -182,7 +185,7 @@ void special_keyboard_callback( int key, int x, int y ){
 void keyboard_callback( unsigned char key, int x, int y ){
     camera.CallBackKeyboardFunc(key, x, y);
     
-    //player.keyboardInput(key, x, y);
+    player.keyboardInput(key, x, y);
     
     switch( key ){
         case 27:

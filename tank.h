@@ -18,7 +18,7 @@
 #include "objreader.h"
 #include "vector.h"
 #include "boundingbox.h"
-
+#include "projectile.h"
 class Tank{
 private:
     struct Colour {
@@ -31,6 +31,7 @@ private:
     void loadModel();
     float scale;        //size of tank
     BoundingBox bbox;
+    Projectile bullets[20];
 public:
 	Colour color;
     Tank() : position(0, 0, 0),rotation(0, 0, 0) { }
@@ -43,7 +44,9 @@ public:
 
     void drawTank();
     void drawOrientationLines();
+
     void setColour(float r, float g, float b);
+    void setRotation(Vec3 newRotation);
     void setPosition(Vec3 newPos);
     Vec3 getPosition();
     void setHeight(float h);
@@ -54,6 +57,4 @@ public:
     //gameplay functions
     void killTank();
     void shoot(Vec3 direction);
-    void hasCollision(Vec3 position, Vec3 size);
-    void drawBoundingBox();
 };

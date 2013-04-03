@@ -8,7 +8,6 @@
 
 #include "tank.h"
 #include "math.h"
-
 static const float modelYOffset = 0.68f;
 static const float modelZOffset = -0.4f;
 //RENDERING
@@ -52,6 +51,7 @@ void Tank::drawTank() {
     glPopMatrix();
     bbox = BoundingBox(position, -1, rotation);
     bbox.Render();
+    bullets[0].Render();
 }
 void Tank::setColour(float r, float g, float b) {
 	color.r = r;
@@ -80,7 +80,15 @@ void Tank::specialKeyboardInput(int key, int x, int y) {
 }
 void Tank::keyboardInput(unsigned char key, int x, int y) {
     //cout<<key<<endl;
-    
+    switch (key) {
+        case 32:
+            shoot(rotation);
+            break;
+            
+    }
+}
+void Tank::setRotation(Vec3 newRotation) {
+    rotation = newRotation;
 }
 void Tank::setPosition(Vec3 newPos) {
     position = newPos;
@@ -99,25 +107,6 @@ void Tank::killTank() {
 }
 void Tank::shoot(Vec3 direction) {
     //create a bullet with the current rotation directory.
-    
-}
-void Tank::hasCollision(Vec3 position, Vec3 size) {
-
-}
-
-void Tank::drawBoundingBox() {
-    glBegin(GL_LINES);
-    glColor3f( 1.0f, 0.0f, 0.0f );
-    glVertex3f( 1.0f, 0.0f, 0.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    
-    
-    glVertex3f( 0.0f, 1.0f, 0.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    
-    glVertex3f( 0.0f, 0.0f, 1.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    
-    glEnd();
-    glColor3f(1.0, 1.0, 1.0);
+    Projectile bullet = Projectile(position, direction);
+    bullets[0] = bullet;
 }

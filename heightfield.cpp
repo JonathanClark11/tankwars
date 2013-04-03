@@ -19,7 +19,7 @@
 #include "texloader.h"
 
 
-#include <iostream.h>
+//#include <iostream.h>
 #define     STEP_SIZE   8
 
 
