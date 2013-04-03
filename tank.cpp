@@ -26,7 +26,12 @@ void Tank::drawOrientationLines() {
     glColor3f(1.0, 1.0, 1.0);
 }
 
-void Tank::drawTank() {
+void Tank::Update() {
+        //ai and movement here.
+}
+
+
+void Tank::Render() {
     glPushMatrix();
     
     GLfloat mat_specular[] = {0.3, 0.3, 0.3, 1.0};
@@ -35,13 +40,13 @@ void Tank::drawTank() {
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     glEnable(GL_COLOR_MATERIAL);
-
-
+    
+    
     glTranslatef(position[0], position[1], position[2]);
     glRotatef(rotation[1], 0, 1, 0);
     
     drawOrientationLines();
-
+    
     glScalef(scale, scale, scale);
     glTranslatef(0, modelYOffset, modelZOffset);   //do after scaling so it's always the correct height
 	model.displayObj();
@@ -51,8 +56,10 @@ void Tank::drawTank() {
     glPopMatrix();
     bbox = BoundingBox(position, -1, rotation);
     bbox.Render();
-    bullets[0].Render();
+    //bullets[0].Render();
 }
+
+
 void Tank::setColour(float r, float g, float b) {
 	color.r = r;
 	color.g = g;

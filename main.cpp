@@ -19,7 +19,7 @@
 #include <string>
 #include <math.h>
 
-#include "scenemanager.h"
+#include "objectmanager.h"
 #include "quaternion.h"
 #include "tank.h"
 #include "skybox.h"
@@ -57,10 +57,10 @@ OpenGLCamera camera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
 bool wireframe = false;
 HeightMap hField;           //our terrain (map)
 SkyBox sbox;                //skybox
-Tank tanks[1];
+Tank *tanks[5];
 Tank player;                //player's tank
 //Projectile bullets[100];     //max 100 bullets on the map.
-SceneManager scene;         //manager for scene. all objects should be added to this (exception: player and heightmap)
+ObjectManager scene;         //manager for scene. all objects should be added to this (exception: player and heightmap)
 
 GLfloat density = 0.00125; //set the density to 0.3 which is acctually quite thick
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
@@ -101,19 +101,25 @@ void setup_lights() {
 
 
 void init(){
-    scene = SceneManager();
+    scene = ObjectManager();
     //hField.Create(heightmapFile, heightmapTexture, 256, 256);
     hField.Create(heightmapTexture);
+    
     char* SkyBoxTextures[6] = {"Data/textures/skybox/front.tga", "Data/textures/skybox/back.tga", "Data/textures/skybox/left.tga", "Data/textures/skybox/right.tga", "Data/textures/skybox/up.tga", "Data/textures/skybox/down.tga" };
     sbox.Create(SkyBoxTextures);
     
+    
     camera = OpenGLCamera(real3(10,hField.getHeight(10, 3) + 2,-5), real3(2, 1, 2), real3(0, 1, 0),0.5);
     
-    for (int i = 0; i < 1; i++) {
-        tanks[i] = Tank(tankmodelFile, tanktextureFile, 2);
-        tanks[i].setPosition(Vec3(10, hField.getHeight(10, 3), 10)); //y= .70 for flat map
-        tanks[i].setRotation(Vec3(0, 180, 0));
-    }
+    //enemy tank 1
+    tanks[0] = new Tank(tankmodelFile, tanktextureFile, 2);
+    tanks[0]->setPosition(Vec3(10, hField.getHeight(10, 3), 10));
+    tanks[0]->setRotation(Vec3(0, 180, 0));
+    scene.AddObject(tanks[0]);
+
+    
+    
+    //player setup
     player = Tank(tankmodelFile, tanktextureFile, 2);
     player.setPosition(Vec3(10, hField.getHeight(10, 3), 4));
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
@@ -242,21 +248,20 @@ void display_callback( void ){
     glLoadIdentity();
     
     camera.Update(hField.getHeight(camera.camera_pos.x, camera.camera_pos.z));
+    
+    
     glPushMatrix();
     
     glColor3f(1.0, 1.0, 1.0);
     
     hField.Render();
+    
     sbox.Render(camera.camera_pos.x,camera.camera_pos.y,camera.camera_pos.z,1024,1024,1024);
     
     scene.RenderObjects();
     
-    for (int i = 0; i < 1; i++) {
-        tanks[i].drawTank();
-    }
     player.setHeight(hField.getHeight(player.getPosition()[0], player.getPosition()[2]));
-    player.drawTank();
-    //cout<<player.getPosition()[0]<<", "<<player.getPosition()[1]<<", "<<player.getPosition()[2]<<endl;
+    player.Render();
     
     glPopMatrix();
     drawOrientationLines();

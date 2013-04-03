@@ -42,7 +42,7 @@ private:
 public:
 
     
-    Tank() : position(0, 0, 0),rotation(0, 0, 0) { }
+    Tank() : position(0, 0, 0), rotation(0, 0, 0) { }
 	Tank(char* modelFilepath, char* texturePath, float size) : position(0, 0, 0),rotation(0,0,0){
 		model.loadObj(modelFilepath);
 		model.centerObject(); //center model around origin
@@ -50,7 +50,9 @@ public:
         scale = size;
 	}
 
-    void drawTank();
+    void Render();
+    void Update();
+    
     void drawOrientationLines();
 
     void setColour(float r, float g, float b);
