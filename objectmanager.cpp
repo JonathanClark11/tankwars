@@ -24,7 +24,7 @@ void ObjectManager::UpdateObjects() {
         for (pos2 = objects.begin(); pos2 != objects.end(); pos2++) {
             if (pos2 != pos) {
                 //check for collision
-                (*pos)->CheckCollision(*pos2);
+                (*pos)->CheckCollision((*pos2));
             }
         }
     }

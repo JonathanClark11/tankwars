@@ -17,14 +17,14 @@
 #include "boundingbox.h"
 
 bool BoundingBox::collision(BoundingBox b2) {
-//    if ( pBox1._min.x > pBox2._max.x || pBox2._min.x > pBox1._max.x
-//        ||pBox1._min.y > pBox2._max.y || pBox2._min.y > pBox1._max.y
-//        ||pBox1._min.z > pBox2._max.z || pBox2._min.z > pBox1._max.z )
-//    {
-//        return false;
-//    }
-//    
-//    return true;
+    if ( min[0] > b2.max[0] || b2.min[0] > max[0]
+        ||min[1] > b2.max[1] || b2.min[1] > max[1]
+        ||min[2] > b2.max[2] || b2.min[2] > max[2] )
+    {
+        return false;
+    }
+    
+    return true;
 }
     
 void BoundingBox::Render() {

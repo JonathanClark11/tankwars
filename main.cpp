@@ -227,28 +227,20 @@ void keyboard_up_callback( unsigned char key, int x, int y ){
     }
 }
 
-void drawOrientationLines() {
-    glBegin(GL_LINES);
-    glColor3f( 1.0f, 0.0f, 0.0f );
-    glVertex3f( 1.0f, 0.0f, 0.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    glColor3f( 0.0f, 1.0f, 0.0f );
-    glVertex3f( 0.0f, 1.0f, 0.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    glColor3f( 0.0f, 0.0f, 1.0f );
-    glVertex3f( 0.0f, 0.0f, 1.0f );
-    glVertex3f( 0.0f, 0.0f, 0.0f );
-    glEnd();
-    glColor3f(1.0, 1.0, 1.0);
+void mouseMovement(int x, int y) {
+    camera.CallBackMotionFunc(x, y);
 }
+
+void mouseFunc(int button, int state, int x, int y) {
+    camera.CallBackMouseFunc(button, state, x, y);
+}
+
 
 // display callback
 void display_callback( void ){
     if (shoot == true) {
         player.shoot(player.getRotation(), scene);
     }
-    
-    
     int current_window;
     
     // retrieve the currently active window
@@ -256,11 +248,7 @@ void display_callback( void ){
     
     // clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
- 
 
-    /////////////////////////////////////////////////////////////
-    /// TODO: Put your rendering code here! /////////////////////
-    /////////////////////////////////////////////////////////////
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective( 70.0f, float(glutGet(GLUT_WINDOW_WIDTH))/float(glutGet(GLUT_WINDOW_HEIGHT)), 0.1f, 2000.0f );
@@ -284,7 +272,7 @@ void display_callback( void ){
     player.Render();
     
     glPopMatrix();
-    drawOrientationLines();
+    
     // swap the front and back buffers to display the scene
     glutSetWindow( current_window );
     glutSwapBuffers();
@@ -297,24 +285,13 @@ void idle( int value ){
     }
 
     scene->UpdateObjects();
-    
-    // set the currently active window to the mothership and
-    // request a redisplay
+
     glutSetWindow( mother_window );
     glutPostRedisplay();
-    
-    // set a timer to call this function again after the
-    // required number of milliseconds
+
     glutTimerFunc( dt, idle, 0 );
 }
 
-void mouseMovement(int x, int y) {
-    camera.CallBackMotionFunc(x, y);
-}
-
-void mouseFunc(int button, int state, int x, int y) {
-    camera.CallBackMouseFunc(button, state, x, y);
-}
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 /// Program Entry Point //////////////////////////////////////////

@@ -28,7 +28,10 @@ void Projectile::Render() {
     glutSolidCube(0.1);
     glPopMatrix();
     glColor3f(1.0, 1.0, 1.0);
-
+    
+    bbox = BoundingBox(position, 0.1, direction);
+    //bbox.Render();
+    
     //testing... should be moved to update function.
     Update();
 }

@@ -36,13 +36,14 @@ private:
     void loadModel();
     float scale;        //size of tank
     
-    BoundingBox bbox;
-    
     
     //keyboard input
     enum KEYS { LEFT, RIGHT, UP, DOWN, SPACE };
     int keyboard[5];
     
+    
+    //tank specific traits
+    int health;
 public:
 
     
@@ -52,12 +53,11 @@ public:
 		model.centerObject(); //center model around origin
 		model.resizeObject(); //resize model, coordinates scaled to [-1,1]x[-1,1]x[-1x1]};
         scale = size;
-        for (int i = 0; i < 5; i++) {
-            keyboard[i] = 0;
-        }
+        
+        health = 100;
 	}
 
-    void CheckCollision();
+    void CheckCollision(GameObject *obj);
     void Render();
     void Update();
     
@@ -77,6 +77,5 @@ public:
     void handleKeyboard();
     
     //gameplay functions
-    void killTank();
     void shoot(Vec3 direction, ObjectManager *objManager);
 };

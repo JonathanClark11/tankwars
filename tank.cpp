@@ -49,15 +49,22 @@ void Tank::handleKeyboard() {
 }
 
 void Tank::Update() {
-        //ai and movement here.
-    //handleKeyboard();
+    if (ToDelete() == 1) return;
+    //ai and movement here.
 }
 
-void Tank::CheckCollision() {
-    //if (position[0] > 1024 || position[0] < 0 ||
+void Tank::CheckCollision(GameObject *obj) {
+    if (bbox.collision(obj->bbox)) { //tank collided with something
+        health -= 15;
+        cout<<health<<endl;
+        if (health <= 0) {
+            destroy();
+        }
+    }
 }
 
 void Tank::Render() {
+    if (ToDelete() == 1) return;
     handleKeyboard();
     glPushMatrix();
     
@@ -80,7 +87,7 @@ void Tank::Render() {
     
     
     glPopMatrix();
-    bbox = BoundingBox(position, -1, rotation);
+    bbox = BoundingBox(position, 0.7, rotation);
     bbox.Render();
 }
 
@@ -146,7 +153,6 @@ void Tank::keyboardInputUp(unsigned char key, int x, int y) {
     }
 }
 
-
 void Tank::setRotation(Vec3 newRotation) {
     rotation = newRotation;
 }
@@ -163,11 +169,6 @@ Vec3 Tank::getPosition() {
     return position;
 }
 
-void Tank::killTank() {
-    //TODO: PARTICLE EMISSION
-    //BLOWUP TANK
-    //DESTROY
-}
 void Tank::shoot(Vec3 direction, ObjectManager *objManager) {
     //create a bullet with the current rotation directory.
     Projectile *bullet = new Projectile(position, direction);
