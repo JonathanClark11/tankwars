@@ -14,29 +14,27 @@
 #include<stdint.h>
 #endif
 
-#include <iostream>
+//#include <iostream>
 #include <stdlib.h>
 #include <string>
 #include <math.h>
 #include <time.h>
+#include <sstream>
 
 #include "objectmanager.h"
 #include "quaternion.h"
 #include "tank.h"
 #include "skybox.h"
 #include "crate.h"
+#include "particle.h"
+#include "font.h"
 
 #include "heightfield.h"
 using namespace std;
 
-// time increment between calls to idle() in ms,
-// currently set to 30 FPS
 float dt = 1000.0f*1.0f/30.0f;
-// flag to indicate that we should clean up and exit
 bool quit = false;
-// window handles for mother ship and scout ship
 int mother_window;
-// display width and height
 int disp_width=800, disp_height=600;
 
 //PICKING + CAMERA
@@ -60,19 +58,22 @@ ObjectManager *scene;         //manager for scene. all objects should be added t
 GLfloat density = 0.00125; //set the density to 0.3 which is acctually quite thick
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
 
+Font *text[4];
 
 //TIMER
 time_t timer;
+float framesPerSecond    = 0.0f;
+float frameCounter = 0.0f;
 
-
+bool gameOver;
 
 /*
     Config
  */
 char* heightmapFile = "Data/maps/heightmap_result.raw";
 char* heightmapTexture = "Data/textures/texture.tga";
-char* tankmodelFile = "Data/models/tank.obj";
-char* tanktextureFile = "Data/textures/camo.tga";
+char* tankmodelFile = "Data/models/m5/m5.obj";
+char* tanktextureFile = "Data/models/m5/m5.tga";
 char* turretmodelFile = "Data/models/turret/turret.obj";
 char* turrettextureFile = "Data/models/turret/turret.tga";
 
@@ -112,13 +113,13 @@ void SetupScene() {
     camera = OpenGLCamera(real3(50,10,10), real3(50, 1, 20), real3(0, 1, 0),0.5);
     
     //create enemy tanks
-    for (int i = 0; i < 3; i++) {
-        tanks[i] = new Tank(turretmodelFile, turrettextureFile, 2, Vec3(30+(3*i), 0, 45));
+    for (int i = 0; i < 4; i++) {
+        tanks[i] = new Tank(turretmodelFile, turrettextureFile, 2, Vec3(30+(10*i), 0, 50));
         tanks[i]->setRotation(Vec3(0, 270, 0));
         scene->AddObject(tanks[i]);
     }
     
-    Crate *crates[30];
+    Crate *crates[50];
     for (int i = 0; i < 15; i++) {
         crates[i] = new Crate(Vec3(65, 1, 30+(2*i)), Vec3(0, 0, 0));
         scene->AddObject(crates[i]);
@@ -127,11 +128,11 @@ void SetupScene() {
         crates[i] = new Crate(Vec3(25, 1, (2*i)), Vec3(0, 0, 0));
         scene->AddObject(crates[i]);
     }
+    for (int i = 30; i < 50; i++) {
+        crates[i] = new Crate(Vec3((2*i)-34, 1, 61), Vec3(0, 0, 0));
+        scene->AddObject(crates[i]);
+    }
     
-//    Crate *crate2 = new Crate(Vec3(66, 1, 30), Vec3(0, 0, 0));
-//    Crate *crate = new Crate(Vec3(64, 1, 30), Vec3(0, 0, 0));
-//    scene->AddObject(crate);
-//    scene->AddObject(crate2);
     
     //player setup
     player = new Tank(tankmodelFile, tanktextureFile, 2, Vec3(50, 0, 25));
@@ -139,6 +140,10 @@ void SetupScene() {
     player->initKeyboard();
     scene->AddObject(player);
     
+    //setup hud
+    text[0] = new Font("Health: ", Vec3(50, 20, 0));
+    text[1] = new Font("Score: ", Vec3(650, 20, 0));
+    text[2] = new Font("FPS: ", Vec3(50, 550, 0));
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
 }
 
@@ -160,9 +165,24 @@ GLuint createDL() {
 	return(snowManDL);
 }
 
+
+void CalculateFPS()
+{
+    time_t t2;
+    time(&t2);
+    ++frameCounter;
+    
+    if( t2 - timer > 1.0f )
+    {
+        framesPerSecond = frameCounter;
+        time(&timer);
+        frameCounter = 0;
+    }
+}
+
 void init(){
     scene = new ObjectManager();
-    
+    gameOver = false;
     SetupScene();
     
     glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );
@@ -342,11 +362,70 @@ void stopPicking() {
 	rmode = NORMAL;
 }
 
+void drawGameOver(){
+    //render HUD
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, 800, 0, 600);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    text[3]->Render();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glutSwapBuffers();
+}
+void drawHUD() {
+    //Update Health
+    int hp = player->getHealth();
+    stringstream ss;
+    ss<<"Health: "<<hp;
+    string str = ss.str();
+    text[0]->setText(str.c_str());
+    
+    //Update Score
+    int score = PlayerStats::points;
+    ss.str("");
+    ss<<"Score: "<<score;
+    str = ss.str();
+    text[1]->setText(str.c_str());
+    
+    //Update FPS
+    ss.str("");
+    ss<<"FPS: "<<framesPerSecond;
+    str = ss.str();
+    text[2]->setText(str.c_str());
+    
+    //render HUD
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, 800, 0, 600);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    for (int i = 0; i < 3; i++) {
+        text[i]->Render();
+    }
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+}
+
 // display callback
 void display_callback( void ){
-        
+    
+    if (gameOver == true){
+        drawGameOver();
+    }
+    
+    CalculateFPS();
     if (shoot == true) {
-        player->shoot(player->getRotation(), scene);
+        player->shoot(player->getRotation());
     }
     int current_window;
     
@@ -365,6 +444,7 @@ void display_callback( void ){
     gluPerspective( 70.0f, float(glutGet(GLUT_WINDOW_WIDTH))/float(glutGet(GLUT_WINDOW_HEIGHT)), 0.1f, 2000.0f );
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
     
     camera.Update(hField.getHeight(camera.camera_pos.x, camera.camera_pos.z));
     
@@ -398,20 +478,42 @@ void display_callback( void ){
 //			glPopMatrix();
 //		}
 //    }
-    if (rmode == SELECT)
+    
+    //draw HUD
+    
+    drawHUD();
+    
+    if (rmode == SELECT) {
 		stopPicking();
-	else
-		glutSwapBuffers();
+    }
+	else {
+        if (gameOver == false)
+            glutSwapBuffers();
+    }
+}
+void lose(){
+    gameOver = true;
+    text[3] = new Font("You Lose! Press Escape to Quit", Vec3(325, 300, 0));
+}
+void win() {
+    gameOver = true;
+    text[3] = new Font("You Win! Press Escape to Quit", Vec3(325, 300, 0));
 }
 
 void idle( int value ){
+    if (player->getHealth() <= 0) {
+        lose();
+    }
+    if (scene->countEnemies() <= 0) {
+        win();
+    }
     if( quit ){
         cleanup();
         exit(0);
-    }
-    time(&timer); //update time
-    //cout<<timer<<endl;
-    scene->UpdateObjects();
+    } 
+
+    if (gameOver == false)
+        scene->UpdateObjects();
 
     glutSetWindow( mother_window );
     glutPostRedisplay();

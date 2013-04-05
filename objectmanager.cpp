@@ -1,10 +1,14 @@
 #include "objectmanager.h"
+
 //#include <iostream.h>
 
 void ObjectManager::AddObject(GameObject *obj) {
+    obj->setObjectManager(this);
     objects.insert(obj);
+    
 }
 void ObjectManager::RemoveObject(GameObject *obj) {
+    obj->setObjectManager(NULL);
     objects.erase(obj);
 }
 
@@ -20,7 +24,7 @@ void ObjectManager::UpdateObjects() {
         if ((*pos)->getType() == TANK && (*pos)->IsPlayer() == false) {
             //let enemy tanks know where user is positioned.
             GameObject *user = findPlayer();
-            (*pos)->informAI(user);//, this);
+            (*pos)->informAI(user);
         }
         
         (*pos)->Update();
@@ -49,4 +53,14 @@ GameObject* ObjectManager::findPlayer() {
         }
     }
     return NULL;
+}
+int ObjectManager::countEnemies() {
+    int tankCount = 0;
+        GameObjectSet::const_iterator pos;
+        for (pos = objects.begin(); pos != objects.end(); pos++) {
+            if ((*pos)->IsPlayer() == false && (*pos)->getType() == TANK) {
+                tankCount++;
+            }
+        }
+        return tankCount;
 }

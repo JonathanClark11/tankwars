@@ -23,6 +23,7 @@
 #include "projectile.h"
 #include "gameobject.h"
 #include "objectmanager.h"
+
 class Tank : public GameObject {
 private:
     struct Colour {
@@ -54,8 +55,8 @@ public:
     Tank() : GameObject(500, TANK, Vec3(0, 0, 0)), rotation(0, 0, 0) { }
 	Tank(char* modelFilepath, char* texturePath, float size, Vec3 pos) : GameObject(500, TANK, Vec3(pos[0],pos[1],pos[2])), rotation(0,0,0){
 		model.loadObj(modelFilepath);
-		model.centerObject(); //center model around origin
-		model.resizeObject(); //resize model, coordinates scaled to [-1,1]x[-1,1]x[-1x1]};
+		model.centerObject();
+		model.resizeObject(); 
         scale = size;
         
         texture = TextureLoader::LoadTexture(texturePath);
@@ -76,6 +77,7 @@ public:
     Vec3 getRotation();
     void setHeight(float h);
     void setPlayer();
+    int getHealth();
     
     void initKeyboard();
     void keyboardInput(unsigned char key, int x, int y);
@@ -85,6 +87,8 @@ public:
     void handleKeyboard();
     
     //gameplay functions
-    void shoot(Vec3 direction, ObjectManager *objManager);
+    void shoot(Vec3 direction);
     void informAI(GameObject *user);//, ObjectManager *objManager);
+    
+
 };

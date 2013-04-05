@@ -20,3 +20,10 @@ void GameObject::destroy() {
     }
     Vec3 GameObject::getPosition() { return position; }
     bool GameObject::IsPlayer() { return isPlayer; }
+
+void GameObject::setObjectManager(ObjectManager *oManager) {
+    objManager = oManager;
+}
+void GameObject::setOwner(GameObject *obj) {
+    owner = obj;
+}

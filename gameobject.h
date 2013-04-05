@@ -3,17 +3,23 @@
 #include "boundingbox.h"
 #include "playerstats.h"
 #include "vector.h"
-//#include "objectmanager.h"
+//#include "objectmanager.h" (requires this...)
 
-#include <iostream.h>
-enum ObjectType { TANK, PROJECTILE, CRATE };
+//#include <iostream.h>
+
+class ObjectManager;
+
+enum ObjectType { TANK, PROJECTILE, CRATE, PARTICLE };
 class GameObject {
 private:
     int toDelete;
     int pointsValue;
     ObjectType type;
     
+    
 public:
+    ObjectManager *objManager;
+    GameObject *owner;
     bool isPlayer;
     Vec3 position;
     BoundingBox bbox;
@@ -32,8 +38,10 @@ public:
     int ToDelete();
     ObjectType getType();
     
+    void setObjectManager(ObjectManager *oManager);
     void setPosition(Vec3 pos);
     Vec3 getPosition();
     bool IsPlayer();
+    void setOwner(GameObject *obj);
 };
 #endif

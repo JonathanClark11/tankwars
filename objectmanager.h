@@ -1,4 +1,5 @@
 #include "gameobject.h"
+
 #include <set>
 #ifndef _OBJECTMANAGER_H_
 #define _OBJECTMANAGER_H_
@@ -17,5 +18,7 @@ public:
     void RenderObjects();
     
     GameObject* findPlayer();
+    
+    int countEnemies();
 };
 #endif

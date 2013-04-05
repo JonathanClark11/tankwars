@@ -2,5 +2,5 @@
 
 namespace PlayerStats {
     int points = 0;
-    int bulletDamage = 10;
+    int bulletDamage = 50;
 }

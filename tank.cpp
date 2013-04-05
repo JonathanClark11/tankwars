@@ -10,8 +10,9 @@
 
 #include "tank.h"
 #include "math.h"
-static const float modelYOffset = 0.68f;
-static const float modelZOffset = -0.4f;
+#include "particle.h"
+static const float modelYOffset = 0.3f;
+static const float modelZOffset = -0.0f;
 //RENDERING
 void Tank::drawOrientationLines() {
     glBegin(GL_LINES);
@@ -51,16 +52,6 @@ void Tank::Update() {
     //ai and movement here.
 }
 
-void Tank::CheckCollision(GameObject *obj) {
-    if (ToDelete() == 1) return;
-    if (bbox.collision(obj->bbox)) { //tank collided with something
-        health -= PlayerStats::bulletDamage;
-        if (health <= 0) {
-            destroy();
-        }
-    }
-}
-
 void Tank::Render() {
     if (ToDelete() == 1) return;
     //glColor3f(1.0, 0.0, 0.0);
@@ -83,7 +74,9 @@ void Tank::Render() {
     //drawOrientationLines();
     
     glScalef(scale, scale, scale);
-    glTranslatef(0, modelYOffset, modelZOffset);   //do after scaling so it's always the correct height
+    float turretOffset = 0;
+    if (IsPlayer() == false) { turretOffset = 0.35f;}
+    glTranslatef(0, modelYOffset + turretOffset, modelZOffset);   //do after scaling so it's always the correct height
 	
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -93,8 +86,13 @@ void Tank::Render() {
     glDisable(GL_TEXTURE_2D);
     
     glPopMatrix();
-    bbox = BoundingBox(position, 0.7, rotation);
-    //bbox.Render();
+    float bboxScale;
+    if (IsPlayer() == true)
+        bboxScale = 1.0;
+    else
+        bboxScale = 1.5;
+    bbox = BoundingBox(position, bboxScale, rotation);
+    bbox.Render();
     glColor3f(1.0, 1.0, 1.0);
 }
 
@@ -178,26 +176,67 @@ void Tank::setHeight(float h) {
     position[1] = h;
 }
 void Tank::setPlayer() {
-    health = 1000;
+    health = 3500;
     isPlayer = true;
 }
 
-void Tank::shoot(Vec3 direction, ObjectManager *objManager) {
+void Tank::shoot(Vec3 direction) {
     //create a bullet with the current rotation directory.
     int sec = difftime(time(NULL), shootTimer);
-    //cout<<sec<<endl;
-    if (sec > waitShootTime) {
+    if (sec * 3 > waitShootTime) {
         Projectile *bullet = new Projectile(position, direction, this);
+        bullet->setOwner(this);
         objManager->AddObject(bullet);
         time(&shootTimer);  //update shoot timer
     }
-    
 }
 
-void Tank::informAI(GameObject *user) {//, ObjectManager *objManager) {
+void Tank::CheckCollision(GameObject *obj) {
+    if (ToDelete() == 1) return;
+    if (bbox.collision(obj->bbox)) { //tank collided with something
+        
+        //if bullet vs tank, check whether it's our tank that shot it
+        if (obj->owner != this) {
+            //cout<<"real hit"<<endl;
+            health -= PlayerStats::bulletDamage;
+        }
+            
+            //only subtract health if not owner
+            //health -= PlayerStats::bulletDamage;
+        //cout<<health<<endl;
+        if (health <= 0) {
+            Particle *p = new Particle(position);
+            objManager->AddObject(p);
+            destroy();
+        }
+    }
+}
+
+void Tank::informAI(GameObject *user) {
     //we have the user's info, now lets aim at him!
+    //cout<<"----------------------"<<endl;
     Vec3 uPos = user->getPosition();
-    Vec3 aimVector = Vec3(uPos[0] - position[0],uPos[1] - position[1],uPos[2] - position[2]);
-    cout<<"aim:"<<aimVector[0]<<","<<aimVector[1]<<","<<aimVector[2]<<endl;
-    //shoot(aimVector, objManager);
+    //cout<<"uPos:"<<uPos[0]<<","<<uPos[1]<<","<<uPos[2]<<endl;
+    //cout<<"Pos:"<<position[0]<<","<<position[1]<<","<<position[2]<<endl;
+    Vec3 aimVector = Vec3(uPos[0] - position[0],  uPos[1] - position[1] ,uPos[2] - position[2] );
+    aimVector.normalize();
+    Vec3 z = Vec3(0, 0, 1);
+    
+    double rotationVec = z.dot(aimVector);
+    
+    Vec3 newAim = Vec3(0, acos(rotationVec) * 180 / 3.14159265, 0);
+    if (aimVector[0] < 0)
+        newAim[1] = -newAim[1];
+
+    //aimVector.normalize();
+    //cout<<"aim:"<<newAim[0]<<","<<newAim[1]<<","<<newAim[2]<<endl;
+    //cout<<"rot:"<<newAim[1]<<endl;
+    
+    //rotation[1] = rotationVec;
+    shoot(newAim);
+    //cout<<"----------------------"<<endl<<endl<<endl;
+}
+
+int Tank::getHealth() {
+    return health;
 }

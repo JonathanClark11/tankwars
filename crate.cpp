@@ -88,6 +88,10 @@ void Crate::CheckCollision(GameObject *obj) {
             
             //cout<<"norml:"<<normal[0]<<","<<normal[1]<<","<<normal[2]<<endl;
             obj->setPosition(Vec3(objPos[0] + (normal[0] * 0.5),objPos[1],objPos[2] + (normal[2] * 0.5)));
+            
+            
+            
+            //SHOOT AT USER!!!!!
             //cout<<"newPos:"<<position[0]<<","<<position[1]<<","<<position[2]<<endl;
             
         }

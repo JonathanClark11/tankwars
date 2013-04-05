@@ -25,12 +25,12 @@ void Projectile::Render() {
     glRotatef(direction[1], 0, 1, 0);
     glRotatef(direction[2], 0, 0, 1);
     
-    glutSolidCube(0.1);
+    glutSolidCube(0.3);
     glPopMatrix();
     glColor3f(1.0, 1.0, 1.0);
     
-    bbox = BoundingBox(position, 0.05, direction);
-    //bbox.Render();
+    bbox = BoundingBox(position, 0.15, direction);
+    bbox.Render();
     
     //testing... should be moved to update function.
     Update();
@@ -51,9 +51,7 @@ void Projectile::CheckCollision(GameObject *obj) {
         position[1] > 1024 || position[1] < 0) {
         destroy();
     }
-    
     if (bbox.collision(obj->bbox) && obj != creator) {
-        //cout<<"collision with bullet"<<endl;
         destroy();
     }
 }
