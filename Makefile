@@ -13,7 +13,7 @@ endif
 
 
 BIN=tankwars
-OBJ=main.o tank.o objreader.o heightfield.o skybox.o texloader.o boundingbox.o projectile.o objectmanager.o
+OBJ=main.o tank.o objreader.o heightfield.o skybox.o texloader.o boundingbox.o projectile.o objectmanager.o crate.o playerstats.o gameobject.o
 
 
 default: build

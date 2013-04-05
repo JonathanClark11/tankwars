@@ -15,15 +15,19 @@ void ObjectManager::UpdateObjects() {
         if ((*pos)->ToDelete() == 1) {
             objects.erase(pos);
         }
-        //cout<<objects.size()<<endl;
-        //update object position/movement blah blah
-        (*pos)->Update();
         
+        //check to update Enemy Tank AI
+        if ((*pos)->getType() == TANK && (*pos)->IsPlayer() == false) {
+            //let enemy tanks know where user is positioned.
+            GameObject *user = findPlayer();
+            (*pos)->informAI(user);//, this);
+        }
+        
+        (*pos)->Update();
         
         GameObjectSet::const_iterator pos2;
         for (pos2 = objects.begin(); pos2 != objects.end(); pos2++) {
             if (pos2 != pos) {
-                //check for collision
                 (*pos)->CheckCollision((*pos2));
             }
         }
@@ -37,3 +41,12 @@ void ObjectManager::RenderObjects() {
     }
 }
 
+GameObject* ObjectManager::findPlayer() {
+    GameObjectSet::const_iterator pos;
+    for (pos = objects.begin(); pos != objects.end(); pos++) {
+        if ((*pos)->IsPlayer() == true) {
+            return (*pos);
+        }
+    }
+    return NULL;
+}

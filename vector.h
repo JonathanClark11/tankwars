@@ -1,6 +1,7 @@
 #ifndef __VECTOR__
 #define __VECTOR__
 #include <math.h>
+
 class Vec3 {
 public:
 	// constructor
@@ -16,8 +17,7 @@ public:
 	double& operator[] (int i) {
 		return coord[i];
 	};
-    
-	// dot product with other vector
+    // dot product with other vector
 	double dot(Vec3 other) {
 		return coord[0]*other[0] + coord[1]*other[1] + coord[2]*other[2];
 	};
@@ -45,4 +45,22 @@ public:
 	double coord[3];
     
 };
+//static Vec3 operator +(const Vec3 rhs, const Vec3 lhs)
+//{
+//    Vec3 temp(rhs[0] + lhs[0], rhs[1] + lhs[1], rhs[2] + lhs[2]);
+////    temp[0] = rhs[0] + lhs[0];
+////    temp[1] = rhs[1] + lhs[1];
+////    temp[2] = rhs[2] + lhs[2];
+//    return temp;
+//}
+
+//Vec3 operator -(const Vec3 rhs, const Vec3 lhs)
+//{
+//    Vec3 temp;
+//    temp[0] = rhs[0] - lhs[0];
+//    temp[1] = rhs[1] - lhs[1];
+//    temp[2] = rhs[2] - lhs[2];
+//    return temp;
+//}
+
 #endif

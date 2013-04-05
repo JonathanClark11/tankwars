@@ -14,8 +14,10 @@
 #include <iostream>
 #include <math.h>
 #include <string>
+#include <time.h>
 
 #include "objreader.h"
+#include "texloader.h"
 #include "vector.h"
 #include "boundingbox.h"
 #include "projectile.h"
@@ -26,7 +28,6 @@ private:
     struct Colour {
         float r, g, b;				//Colour of tank
     };
-    Vec3 position;
     Vec3 rotation;
     
     objReader model;
@@ -44,17 +45,24 @@ private:
     
     //tank specific traits
     int health;
-public:
-
+    GLuint texture;
     
-    Tank() : position(0, 0, 0), rotation(0, 0, 0) { }
-	Tank(char* modelFilepath, char* texturePath, float size) : position(0, 0, 0),rotation(0,0,0){
+    time_t shootTimer;  //timer for how fast the user can shoot
+    #define waitShootTime 1  //shoot wait time
+    
+public:
+    Tank() : GameObject(500, TANK, Vec3(0, 0, 0)), rotation(0, 0, 0) { }
+	Tank(char* modelFilepath, char* texturePath, float size, Vec3 pos) : GameObject(500, TANK, Vec3(pos[0],pos[1],pos[2])), rotation(0,0,0){
 		model.loadObj(modelFilepath);
 		model.centerObject(); //center model around origin
 		model.resizeObject(); //resize model, coordinates scaled to [-1,1]x[-1,1]x[-1x1]};
         scale = size;
         
+        texture = TextureLoader::LoadTexture(texturePath);
+        
         health = 100;
+        isPlayer = false;
+        time(&shootTimer);
 	}
 
     void CheckCollision(GameObject *obj);
@@ -66,10 +74,10 @@ public:
     void setColour(float r, float g, float b);
     void setRotation(Vec3 newRotation);
     Vec3 getRotation();
-    void setPosition(Vec3 newPos);
-    Vec3 getPosition();
     void setHeight(float h);
+    void setPlayer();
     
+    void initKeyboard();
     void keyboardInput(unsigned char key, int x, int y);
     void specialKeyboardInput(int key, int x, int y);
     void keyboardInputUp(unsigned char key, int x, int y);
@@ -78,4 +86,5 @@ public:
     
     //gameplay functions
     void shoot(Vec3 direction, ObjectManager *objManager);
+    void informAI(GameObject *user);//, ObjectManager *objManager);
 };

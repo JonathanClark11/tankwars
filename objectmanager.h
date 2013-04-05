@@ -9,11 +9,13 @@ private:
     GameObjectSet objects;
     
 public:
-    ObjectManager() {}
+    ObjectManager() { }
     
     void AddObject(GameObject *obj);
     void RemoveObject(GameObject *obj);
     void UpdateObjects();
     void RenderObjects();
+    
+    GameObject* findPlayer();
 };
 #endif

@@ -18,53 +18,51 @@
 #include <stdlib.h>
 #include <string>
 #include <math.h>
+#include <time.h>
 
 #include "objectmanager.h"
 #include "quaternion.h"
 #include "tank.h"
 #include "skybox.h"
+#include "crate.h"
 
 #include "heightfield.h"
 using namespace std;
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-/// Global State Variables ///////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
 
 // time increment between calls to idle() in ms,
 // currently set to 30 FPS
 float dt = 1000.0f*1.0f/30.0f;
-
 // flag to indicate that we should clean up and exit
 bool quit = false;
-
 // window handles for mother ship and scout ship
 int mother_window;
-
 // display width and height
 int disp_width=800, disp_height=600;
 
-
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-/// Initialization/Setup and Teardown ////////////////////////////
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-
+//PICKING + CAMERA
+enum RENDERMODE { NORMAL, SELECT };
 OpenGLCamera camera(real3(0,0,0), real3(1, 1, 1), real3(0, 1, 0), 1);
+RENDERMODE rmode = NORMAL;
+GLuint selectBuf[1024];
+GLint hits;
+int cursorX,cursorY;
+static GLint display_list;
 
 bool wireframe = false;
 HeightMap hField;           //our terrain (map)
 SkyBox sbox;                //skybox
 Tank *tanks[5];
-Tank player;                //player's tank
+Tank *player;                //player's tank
 bool shoot = false;
 //Projectile bullets[100];     //max 100 bullets on the map.
 ObjectManager *scene;         //manager for scene. all objects should be added to this (exception: player and heightmap)
 
 GLfloat density = 0.00125; //set the density to 0.3 which is acctually quite thick
 GLfloat fogColor[4] = {0.5f, 0.5f, 0.5f, 1.0f}; //set the for color to grey
+
+
+//TIMER
+time_t timer;
 
 
 
@@ -75,6 +73,8 @@ char* heightmapFile = "Data/maps/heightmap_result.raw";
 char* heightmapTexture = "Data/textures/texture.tga";
 char* tankmodelFile = "Data/models/tank.obj";
 char* tanktextureFile = "Data/textures/camo.tga";
+char* turretmodelFile = "Data/models/turret/turret.obj";
+char* turrettextureFile = "Data/models/turret/turret.tga";
 
 void setup_lights() {
     // lighting stuff
@@ -109,35 +109,71 @@ void SetupScene() {
     sbox.Create(SkyBoxTextures);
     
     
-    camera = OpenGLCamera(real3(10,hField.getHeight(10, 3) + 2,-5), real3(2, 1, 2), real3(0, 1, 0),0.5);
+    camera = OpenGLCamera(real3(50,10,10), real3(50, 1, 20), real3(0, 1, 0),0.5);
     
     //create enemy tanks
-    for (int i = 0; i < 1; i++) {
-        tanks[i] = new Tank(tankmodelFile, tanktextureFile, 2);
-        tanks[i]->setPosition(Vec3(8+(i*1.2), hField.getHeight(8+(i*1.2), 10), 10));
-        tanks[i]->setRotation(Vec3(0, 180, 0));
+    for (int i = 0; i < 3; i++) {
+        tanks[i] = new Tank(turretmodelFile, turrettextureFile, 2, Vec3(30+(3*i), 0, 45));
+        tanks[i]->setRotation(Vec3(0, 270, 0));
         scene->AddObject(tanks[i]);
     }
     
+    Crate *crates[30];
+    for (int i = 0; i < 15; i++) {
+        crates[i] = new Crate(Vec3(65, 1, 30+(2*i)), Vec3(0, 0, 0));
+        scene->AddObject(crates[i]);
+    }
+    for (int i = 15; i < 30; i++) {
+        crates[i] = new Crate(Vec3(25, 1, (2*i)), Vec3(0, 0, 0));
+        scene->AddObject(crates[i]);
+    }
+    
+//    Crate *crate2 = new Crate(Vec3(66, 1, 30), Vec3(0, 0, 0));
+//    Crate *crate = new Crate(Vec3(64, 1, 30), Vec3(0, 0, 0));
+//    scene->AddObject(crate);
+//    scene->AddObject(crate2);
+    
     //player setup
-    player = Tank(tankmodelFile, tanktextureFile, 2);
-    player.setPosition(Vec3(10, hField.getHeight(10, 3), 4));
+    player = new Tank(tankmodelFile, tanktextureFile, 2, Vec3(50, 0, 25));
+    player->setPlayer();
+    player->initKeyboard();
+    scene->AddObject(player);
+    
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+}
+
+GLuint createDL() {
+	GLuint snowManDL;
+    
+	// Create the id for the list
+	snowManDL = glGenLists(1);
+    
+	glNewList(snowManDL,GL_COMPILE);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    // Draw Body
+	glTranslatef(10.0f ,0.75f, 8.0f);
+	glutSolidSphere(0.75f,20,20);
+    
+	glEndList();
+    
+	return(snowManDL);
 }
 
 void init(){
     scene = new ObjectManager();
     
     SetupScene();
-
-    
     
     glViewport( 0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT) );
     glEnable(GL_CULL_FACE);
     glEnable( GL_DEPTH_TEST );
     glEnable( GL_NORMALIZE );
     glDepthFunc(GL_LEQUAL);
-
+    glShadeModel(GL_SMOOTH);
+    
+    
+    display_list = createDL();
     
     
     //---------LOAD TEXTURES --------------
@@ -165,13 +201,6 @@ void cleanup(){
     
 }
 
-
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-/// Callback Stubs ///////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-
 // window resize callback
 void resize_callback( int width, int height ){    
     /////////////////////////////////////////////////////////////
@@ -187,17 +216,24 @@ void changeGLMode() {
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL);
 		wireframe = false;
 	}
-    
+}
+
+void changeRenderMode() {
+	if (rmode == NORMAL) {
+		rmode = SELECT;
+	} else {
+		rmode = NORMAL;
+	}
 }
 
 
 
 
 void special_keyboard_callback( int key, int x, int y ){
-    player.specialKeyboardInput(key, x, y);
+    player->specialKeyboardInput(key, x, y);
 }
 void special_keyboard_up_callback( int key, int x, int y ){
-    player.specialKeyboardInputUp(key, x, y);
+    player->specialKeyboardInputUp(key, x, y);
 }
 
 // keyboard callback
@@ -205,7 +241,7 @@ void special_keyboard_up_callback( int key, int x, int y ){
 void keyboard_callback( unsigned char key, int x, int y ){
     camera.CallBackKeyboardFunc(key, x, y);
     
-    player.keyboardInput(key, x, y);
+    player->keyboardInput(key, x, y);
     
     switch( key ){
         case 27:
@@ -214,6 +250,9 @@ void keyboard_callback( unsigned char key, int x, int y ){
         case 9:				//TAB	(wireframe/fill)
 			changeGLMode();
 			break;
+        case 'p':
+            changeRenderMode();
+            break;
         case 32:    //space (shoot)
             shoot = true;
         default:
@@ -221,7 +260,7 @@ void keyboard_callback( unsigned char key, int x, int y ){
     }
 }
 void keyboard_up_callback( unsigned char key, int x, int y ){
-    player.keyboardInputUp(key, x, y);
+    player->keyboardInputUp(key, x, y);
     if (key == 32) {
         shoot = false;
     }
@@ -233,13 +272,81 @@ void mouseMovement(int x, int y) {
 
 void mouseFunc(int button, int state, int x, int y) {
     camera.CallBackMouseFunc(button, state, x, y);
+    
+    //pick
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        cursorX = x;
+        cursorY = y;
+        rmode = SELECT;
+    }
 }
 
+//PICKING
+
+void startPicking() {
+	GLint viewport[4];
+	float ratio;
+	glSelectBuffer(1024,selectBuf);
+	glGetIntegerv(GL_VIEWPORT,viewport);
+	glRenderMode(GL_SELECT);
+	glInitNames();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+    
+	gluPickMatrix(cursorX,viewport[3]-cursorY,5,5,viewport);
+	ratio = (viewport[2]+0.0) / viewport[3];
+	gluPerspective(45,ratio,0.1,1000);
+	glMatrixMode(GL_MODELVIEW);
+}
+void processHits2 (GLint hits, GLuint buffer[], int sw)
+{
+    GLint i, j, numberOfNames;
+    GLuint names, *ptr, minZ,*ptrNames;
+    
+    ptr = (GLuint *) buffer;
+    minZ = 0xffffffff;
+    for (i = 0; i < hits; i++) {
+        names = *ptr;
+        ptr++;
+        if (*ptr < minZ) {
+            numberOfNames = names;
+            minZ = *ptr;
+            ptrNames = ptr+2;
+        }
+        
+        ptr += names+2;
+	}
+    if (numberOfNames > 0) {
+        printf ("You picked object  ");
+        ptr = ptrNames;
+        for (j = 0; j < numberOfNames; j++,ptr++) {
+            printf ("%d ", *ptr);
+        }
+	}
+    else
+        printf("You didn't click a pickable object!");
+    printf ("\n");
+    
+}
+void stopPicking() {
+    
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glFlush();
+	hits = glRenderMode(GL_RENDER);
+	if (hits != 0){
+		processHits2(hits,selectBuf,0);
+	}
+	rmode = NORMAL;
+}
 
 // display callback
 void display_callback( void ){
+        
     if (shoot == true) {
-        player.shoot(player.getRotation(), scene);
+        player->shoot(player->getRotation(), scene);
     }
     int current_window;
     
@@ -248,7 +355,11 @@ void display_callback( void ){
     
     // clear the color and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    
+    if (rmode == SELECT) {
+		startPicking();
+	}
+    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective( 70.0f, float(glutGet(GLUT_WINDOW_WIDTH))/float(glutGet(GLUT_WINDOW_HEIGHT)), 0.1f, 2000.0f );
@@ -268,14 +379,29 @@ void display_callback( void ){
     
     scene->RenderObjects();
     
-    player.setHeight(hField.getHeight(player.getPosition()[0], player.getPosition()[2]));
-    player.Render();
+    //player->setHeight(hField.getHeight(player.getPosition()[0], player.getPosition()[2]));
+    player->Render();
     
     glPopMatrix();
     
     // swap the front and back buffers to display the scene
     glutSetWindow( current_window );
-    glutSwapBuffers();
+    //PICKING
+    
+//    for(int i = 0; i < 2; i++) {
+//		for(int j = 0; j < 2; j++) {
+//			glPushMatrix();
+//			glPushName(i*2+j);
+//			glTranslatef(i*3.0,0,-j * 3.0);
+//			glCallList(display_list);
+//			glPopName();
+//			glPopMatrix();
+//		}
+//    }
+    if (rmode == SELECT)
+		stopPicking();
+	else
+		glutSwapBuffers();
 }
 
 void idle( int value ){
@@ -283,7 +409,8 @@ void idle( int value ){
         cleanup();
         exit(0);
     }
-
+    time(&timer); //update time
+    //cout<<timer<<endl;
     scene->UpdateObjects();
 
     glutSetWindow( mother_window );

@@ -29,7 +29,7 @@ void Projectile::Render() {
     glPopMatrix();
     glColor3f(1.0, 1.0, 1.0);
     
-    bbox = BoundingBox(position, 0.1, direction);
+    bbox = BoundingBox(position, 0.05, direction);
     //bbox.Render();
     
     //testing... should be moved to update function.
@@ -44,6 +44,7 @@ void Projectile::Update() {
 }
 
 void Projectile::CheckCollision(GameObject *obj) {
+    if (ToDelete() == 1) return;
     //check if inside the map
     if (position[0] > 1024 || position[0] < 0 ||
         position[2] > 1024 || position[2] < 0 ||
@@ -51,5 +52,8 @@ void Projectile::CheckCollision(GameObject *obj) {
         destroy();
     }
     
-    
+    if (bbox.collision(obj->bbox) && obj != creator) {
+        //cout<<"collision with bullet"<<endl;
+        destroy();
+    }
 }
